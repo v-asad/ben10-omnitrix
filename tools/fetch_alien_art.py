@@ -61,7 +61,7 @@ REJECT = re.compile(
     r"(^|[\s_(-])(ov|omniverse|reboot|rb|os|negative|nega|toy|toys|figure|keychain|box|packag\w*|game|ds|wii|psp|"
     r"line ?art|lineart|sketch|concept|model ?sheet|sheet|turnaround|card|poster|promo|dvd|comic|lego|youtooz|"
     r"mcdonald\w*|screenshot|screencap|episode|vs|and|with|fan|drawing|storyboard|logo|icon|sprite|alpha|"
-    r"albedo|ultimatrix|gwen|kevin|ben|vilgax|grandpa|azmuth|eunice|team|group)([\s_).,-]|$)"
+    r"albedo|ultimatrix|gwen|kevin|ben|vilgax|grandpa|azmuth|eunice|team|group|shirt|tweet|twitter|accessories|unrelated)([\s_).,-]|$)"
     r"|,|&|\.(gif|jpe?g|svg|webm|ogv|ogg)$",
     re.I,
 )
@@ -102,6 +102,35 @@ def transparent(img):
     return all(img.getpixel(p)[3] < 16 for p in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1), (w // 2, 0)])
 
 
+def flat_background(img, tolerance=18):
+    """True if all corners share one flat colour (a plain backdrop we can key out)."""
+    w, h = img.size
+    corners = [img.getpixel(p)[:3] for p in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]]
+    return all(max(abs(a - b) for a, b in zip(c, corners[0])) <= tolerance for c in corners)
+
+
+def cut_out(img, tolerance=28):
+    """Flood-fill the backdrop from every corner to transparent; None if nothing usable remains."""
+    rgb = img.convert("RGB")
+    sentinel = (255, 0, 255)
+    w, h = rgb.size
+    for p in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
+        if rgb.getpixel(p) != sentinel:
+            ImageDraw.floodfill(rgb, p, sentinel, thresh=tolerance)
+    mask = Image.new("L", (w, h), 255)
+    px, mp = rgb.load(), mask.load()
+    for y in range(h):
+        for x in range(w):
+            if px[x, y] == sentinel:
+                mp[x, y] = 0
+    kept = sum(1 for v in mask.getdata() if v) / (w * h)
+    if not 0.05 < kept < 0.85:
+        return None
+    out = img.convert("RGBA")
+    out.putalpha(mask)
+    return out
+
+
 def candidates(name, era, per):
     stem = name.lower().replace("ultimate ", "")
     wanted_ultimate = era == "ult"
@@ -134,9 +163,13 @@ def candidates(name, era, per):
         if len(picks) == per:
             break
         try:
-            if not transparent(Image.open(io.BytesIO(fetch(thumb))).convert("RGBA")):
-                continue
-            picks.append((title, Image.open(io.BytesIO(fetch(url))).convert("RGBA")))
+            preview = Image.open(io.BytesIO(fetch(thumb))).convert("RGBA")
+            if transparent(preview):
+                picks.append((title, Image.open(io.BytesIO(fetch(url))).convert("RGBA")))
+            elif flat_background(preview):
+                keyed = cut_out(Image.open(io.BytesIO(fetch(url))).convert("RGBA"))
+                if keyed is not None:
+                    picks.append((title + " (keyed)", keyed))
         except Exception:  # noqa: BLE001 - skip unreadable files
             continue
     return picks

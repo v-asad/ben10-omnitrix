@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Tapping the face did nothing after the app was updated or reinstalled (stale tap link held by the face). The app now refreshes the face after updates, after reboots and whenever it opens.
+
+### Added (experimental, under review)
+- Alien-specific transformation sequences for 10 original-series aliens.
+
 ## v0.1.0 (2026-10-23)
 
 First release: the Omnitrix on the Galaxy Watch8 (44mm).

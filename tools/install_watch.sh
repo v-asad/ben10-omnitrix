@@ -12,6 +12,9 @@ if [[ "${1:-}" == "--rebuild" ]]; then
   "$PY" tools/build_watchface.py
 fi
 
+# Alien art (fast, Pillow only): approved art from art/aliens or hourglass fallbacks.
+"$PY" tools/build_alien_art.py
+
 (cd android && ./gradlew -q :watchface:assembleDebug :app:assembleRelease)
 APKS=(android/app/build/outputs/apk/release/app-release.apk android/watchface/build/outputs/apk/debug/watchface-debug.apk)
 

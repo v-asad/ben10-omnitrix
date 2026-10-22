@@ -5,7 +5,8 @@ Reads data/aliens.json and art/aliens/<slug>.png (gitignored, personal use). Wri
 generated, gitignored assets:
 
   app       android/app/src/generated/assets/aliens/{holo,glow,icon}/<slug>.png
-              holo  256 px full-colour art (the app tints it by luminance)
+              holo  256 px hologram plate: contrast-boosted luminance, alpha kept
+                    (the app only multiplies it by the theme colour: cheap on the GPU)
               glow  256 px pre-blurred white silhouette (no runtime blur)
               icon   72 px white silhouette for the bezel carousel
   face      android/watchface/src/generated/res/drawable-nodpi/alien_<n>.png
@@ -19,7 +20,7 @@ Usage:  python3 tools/build_alien_art.py
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 ROSTER = json.loads((ROOT / "data/aliens.json").read_text())["aliens"]
@@ -56,6 +57,13 @@ def fit(img, size, pad=0.06):
     return out
 
 
+def hologram_plate(img, contrast=1.9, lift=-48):
+    """Greyscale luminance with boosted contrast: dark line work stays dark, fills glow."""
+    lum = ImageOps.grayscale(img.convert("RGB")).point(lambda v: max(0, min(255, int(v * contrast + lift))))
+    plate = Image.merge("RGBA", (lum, lum, lum, img.getchannel("A")))
+    return plate
+
+
 def silhouette(img):
     white = Image.new("RGBA", img.size, (255, 255, 255, 0))
     white.putalpha(img.getchannel("A"))
@@ -76,7 +84,7 @@ def main():
             art, _ = fallback(), missing.append(slug)
 
         holo = fit(art, HOLO)
-        holo.save(APP_OUT / "holo" / f"{slug}.png", optimize=True)
+        hologram_plate(holo).save(APP_OUT / "holo" / f"{slug}.png", optimize=True)
         glow = silhouette(holo).filter(ImageFilter.GaussianBlur(9))
         glow.save(APP_OUT / "glow" / f"{slug}.png", optimize=True)
         silhouette(fit(art, ICON, pad=0.04)).save(APP_OUT / "icon" / f"{slug}.png", optimize=True)

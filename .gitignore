@@ -12,3 +12,6 @@ local.properties
 *.iml
 .idea/
 .kotlin/
+
+# Official alien artwork fetched for personal use (copyrighted, never commit)
+art/

@@ -83,6 +83,8 @@
   @keyframes ecg { to { transform:translateX(-120px); } }
   .pop { transform-origin:240px 240px; animation:pop .35s cubic-bezier(.2,1.6,.4,1) both; }
   @keyframes pop { from { transform:scale(.86); } to { transform:scale(1); } }
+  .holoIn { transform-origin:240px 292px; animation:holoIn .55s cubic-bezier(.2,1.2,.4,1) both; }
+  @keyframes holoIn { 0% { transform:scale(.6,.02); opacity:0; } 45% { opacity:1; } 70% { transform:scale(1,1.06); } 100% { transform:none; opacity:1; } }
   .holo { animation:holo 2.2s ease-in-out infinite; }
   @keyframes holo { 0%,100% { opacity:.85; } 50% { opacity:1; } }
 </style>
@@ -327,40 +329,89 @@ function faceSVG(o) {
   </svg>`;
 }
 
+const STEP = 360 / ALIENS.length;
+const IMG = {};   // slug -> URL of user-supplied artwork that loaded successfully
+
+const HOLO_TINT = {
+  green:  '.05 .1 .02 0 0  .35 .7 .15 0 .05  .12 .25 .05 0 .02  0 0 0 1 0',
+  master: '.3 .6 .12 0 .04  .33 .66 .14 0 .05  .05 .1 .02 0 0  0 0 0 1 0',
+  red:    '.25 .5 .1 0 .03  .02 .04 .01 0 0  .02 .04 .01 0 0  0 0 0 1 0',
+};
+
+// Filter, edge-fade mask, scanlines and projector cone for a hologram centred at (cx, cy).
+function holoDefs(id, theme, col, cx, cy, r) {
+  return `<defs>
+    <filter id="holo${id}" x="-10%" y="-10%" width="120%" height="120%">
+      <feColorMatrix type="matrix" values="${HOLO_TINT[theme]}" result="t"/>
+      <feGaussianBlur in="t" stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="t"/></feMerge>
+    </filter>
+    <radialGradient id="hfade${id}"><stop offset=".6" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+    <mask id="hmask${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="480">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#hfade${id})"/>
+    </mask>
+    <pattern id="scanl${id}" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="#000" opacity=".45"/></pattern>
+    <linearGradient id="cone${id}" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient>
+  </defs>`;
+}
+
+// The alien itself: real artwork if the user supplied it, otherwise the original glyph.
+function holoArt(a, id, cx, cy, size, col) {
+  const art = IMG[a.slug]
+    ? `<image href="${IMG[a.slug]}" x="${cx-size/2}" y="${cy-size/2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" filter="url(#holo${id})"/>`
+    : emblem(a, cx, cy, size*.72, col, `filter="url(#glow${id})"`);
+  return `<g mask="url(#hmask${id})">
+    ${art}
+    <rect x="${cx-size/2}" y="${cy-size/2}" width="${size}" height="${size}" fill="url(#scanl${id})"/>
+    <rect x="${cx-size/2}" y="${cy}" width="${size}" height="3" fill="${col}" opacity=".7" ${anim('scan',2.6)}/>
+  </g>`;
+}
+
+function statBars(stats, col, x0, y, gap=47) {
+  return stats.map((v,k) => {
+    const x = x0 + k*gap;
+    return `<text x="${x+19}" y="${y}" text-anchor="middle" font-family="Orbitron" font-size="8" letter-spacing="1" fill="#6f9a66">${STAT_LABELS[k]}</text>` +
+      Array.from({length:10}, (_,n) => `<rect x="${x+n*4}" y="${y+4}" width="3" height="6" fill="${n<v?col:'#1c2a1a'}"/>`).join('');
+  }).join('');
+}
+
 function selectorSVG(o) {
-  const id = ++UID, t = THEMES[o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green'];
-  const a = ALIENS[o.alien];
-  const n = ALIENS.length;
+  const id = ++UID, th = o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green', t = THEMES[th];
+  const a = ALIENS[o.alien], locked = th === 'red';
+  const col = locked ? '#ff4a3a' : t.text;
+  const rot = o.ringRot ?? -o.alien * STEP;
+  // DNA carousel around the bezel; whatever sits at 12 o'clock is selected
   let ring = '';
-  for (let k = -3; k <= 3; k++) {
-    const i = (o.alien + k + n) % n, ang = k * 26;
+  ALIENS.forEach((al, i) => {
+    const ang = ((i*STEP + rot) % 360 + 540) % 360 - 180;
+    const sel = i === o.alien;
     const [x,y] = polar(206, ang);
-    const sel = k === 0;
-    ring += `<circle cx="${x}" cy="${y}" r="${sel?24:17}" fill="#000" stroke="${sel?t.text:'#2a3a28'}" stroke-width="${sel?3:2}" ${sel?`filter="url(#glow${id})"`:''}/>` +
-            emblem(ALIENS[i], x, y, sel?30:20, sel?t.text:'#4c6e44');
-  }
-  const locked = o.theme === 'red';
+    const op = sel ? 1 : Math.max(.22, 1 - Math.abs(ang)/190);
+    ring += `<g opacity="${op.toFixed(2)}">
+      <circle cx="${x}" cy="${y}" r="${sel?25:17}" fill="#000" stroke="${sel?col:'#2a3a28'}" stroke-width="${sel?3:2}" ${sel?`filter="url(#glow${id})"`:''}/>
+      ${emblem(al, x, y, sel?30:20, sel ? col : locked ? '#5a2a24' : '#4c6e44')}
+    </g>`;
+  });
   return `<svg viewBox="0 0 480 480">
     ${defs(t,id)}
+    ${holoDefs(id, th, col, 240, 196, 92)}
     <circle cx="240" cy="240" r="240" fill="#000"/>
-    <circle cx="240" cy="240" r="226" fill="none" stroke="url(#ring${id})" stroke-width="26" opacity=".55"/>
+    <circle cx="240" cy="240" r="226" fill="none" stroke="url(#ring${id})" stroke-width="26" opacity=".45"/>
     ${ring}
-    <g class="pop">
-      <circle cx="240" cy="240" r="176" fill="#000" stroke="${t.text}" stroke-width="2" opacity=".9"/>
-      <circle cx="240" cy="240" r="168" fill="none" stroke="${t.text}" stroke-width="1" stroke-dasharray="2 6" opacity=".6" class="spin-rev"/>
-      <!-- hourglass outline: the raised core in selection mode -->
-      <g clip-path="url(#clip${id})" opacity=".55">
-        <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${t.text}" stroke-width="2"/>
-        <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${t.text}" stroke-width="2"/>
-      </g>
-      <circle cx="240" cy="240" r="150" fill="none" stroke="${t.text}" stroke-width="3" filter="url(#glow${id})"/>
-      <circle cx="240" cy="226" r="80" fill="${t.glow}" opacity=".22" filter="url(#blur${id})"/>
-      <g class="holo">${emblem(a, 240, 224, 128, locked ? '#5a1d18' : t.text, `filter="url(#glow${id})"`)}</g>
-      <g clip-path="url(#clip${id})"><rect x="90" y="240" width="300" height="3" fill="${t.text}" opacity=".5" class="scan" style="transform-origin:center"/></g>
-      <text x="240" y="330" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="24" letter-spacing="3" fill="${locked ? '#ff5a46' : t.text}">${a.name}</text>
-      <text x="240" y="352" text-anchor="middle" font-family="Chakra Petch" font-weight="600" font-size="14" letter-spacing="3" fill="#6f9a66">${locked ? 'NO ENERGY · LOCKED' : a.fn.toUpperCase()}</text>
-      <text x="240" y="118" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="16" fill="#6f9a66">${pad(o.time.getHours()%12||12)}:${pad(o.time.getMinutes())}</text>
-      <text x="240" y="384" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="3" fill="${t.text}" class="breathe">${locked ? 'CHARGE TO UNLOCK' : 'PRESS TO TRANSFORM'}</text>
+    <polygon points="231,0 249,0 240,7" fill="${col}"/>
+    <g ${since('pop', o.enteredAt ?? -1e9)}>
+      <circle cx="240" cy="240" r="176" fill="#000" stroke="${col}" stroke-width="2" opacity=".95"/>
+      <circle cx="240" cy="240" r="168" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="2 6" opacity=".5" ${anim('spin-rev',60)}/>
+      <text x="240" y="88" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="13" fill="${locked?'#a5554a':'#6f9a66'}">${pad(o.time.getHours()%12||12)}:${pad(o.time.getMinutes())} · DNA ${pad(o.alien+1)}/${pad(ALIENS.length)}</text>
+      <polygon points="198,292 282,292 334,104 146,104" fill="url(#cone${id})"/>
+      <ellipse cx="240" cy="292" rx="44" ry="7" fill="${col}" opacity=".7" filter="url(#glow${id})"/>
+      <g ${since('holoIn', o.changedAt ?? -1e9)}><g ${anim('holo',2.2)} opacity="${locked?.45:1}">${holoArt(a, id, 240, 196, 184, col)}</g></g>
+      <text x="240" y="326" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="25" letter-spacing="3" fill="${col}" filter="url(#glow${id})">${a.name}</text>
+      <text x="240" y="345" text-anchor="middle" font-family="Chakra Petch" font-weight="600" font-size="13" letter-spacing="2" fill="${locked?'#c07468':'#8fbf84'}">${a.species.toUpperCase()} · ${a.planet.toUpperCase()}</text>
+      ${statBars(a.stats, col, 150, 362)}
+      <text x="240" y="398" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="3" fill="${col}" ${anim('breathe',3.2)}>${locked ? 'NO ENERGY · CHARGE' : 'TAP TO TRANSFORM'}</text>
     </g>
   </svg>`;
 }
@@ -447,7 +498,7 @@ function flashSVG(color, label) {
    LIVE PROTOTYPE STATE MACHINE
    HOME ──tap──▶ SELECT ──slam──▶ (flash) ──▶ ALIEN ──timeout──▶ (red flash) ──▶ HOME
    ========================================================= */
-const S = { mode:'home', alien:0, battery:64, hr:72, steps:6842, alienUntil:0, alienDur:20, sound:false };
+const S = { mode:'home', alien:0, battery:64, hr:72, steps:6842, alienUntil:0, alienDur:20, sound:false, ringRot:0, ringTarget:0, changedAt:0, enteredAt:0 };
 const live = document.getElementById('live');
 let actx;
 function tone(freq, dur, type='square', when=0, vol=.06) {
@@ -476,7 +527,7 @@ function render() {
   let html;
   switch (S.mode) {
     case 'home':   html = faceSVG(o); break;
-    case 'select': html = selectorSVG(o); break;
+    case 'select': html = selectorSVG({ ...o, ringRot:S.ringRot, changedAt:S.changedAt, enteredAt:S.enteredAt }); break;
     case 'alien':  html = faceSVG({ ...o, theme:'alien', countdown: remaining / S.alienDur, remaining }); break;
     case 'hr':     html = hrSVG(o); break;
     case 'aod':    html = ambientSVG(o); break;
@@ -494,9 +545,27 @@ function flash(color, label, ms, then) {
 }
 function dialUp() {
   if (S.mode === 'select') return slam();
-  S.mode = 'select'; sfx.dial(); render();
+  S.mode = 'select'; S.enteredAt = S.changedAt = performance.now(); sfx.dial(); render();
 }
-function step(d) { if (S.mode !== 'select') return; S.alien = (S.alien + d + ALIENS.length) % ALIENS.length; sfx.click(); render(); }
+function step(d) {
+  if (S.mode !== 'select') return;
+  S.alien = (S.alien + d + ALIENS.length) % ALIENS.length;
+  S.ringTarget -= d * STEP; S.changedAt = performance.now();
+  sfx.click(); spinRing();
+}
+// Ease the carousel toward its target angle, re-rendering each frame.
+let spinning = false;
+function spinRing() {
+  if (spinning) return;
+  spinning = true;
+  (function frame() {
+    S.ringRot += (S.ringTarget - S.ringRot) * .22;
+    if (Math.abs(S.ringTarget - S.ringRot) < .05) S.ringRot = S.ringTarget;
+    if (S.mode === 'select') render();
+    if (S.ringRot !== S.ringTarget && S.mode === 'select') requestAnimationFrame(frame);
+    else { S.ringRot = S.ringTarget; spinning = false; }
+  })();
+}
 function slam() {
   if (S.mode !== 'select') return dialUp();
   if (themeFor(S.battery) === 'red') { sfx.locked(); live.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'none'}],{duration:240,iterations:2}); return; }
@@ -536,6 +605,7 @@ setInterval(() => {
 /* =========================================================
    GALLERY + STORYBOARD
    ========================================================= */
+function buildStatic() {
 const fixed = new Date(2026, 9, 22, 10, 10, 38);
 const base = { time:fixed, hr:72, steps:6842, alien:0 };
 const cards = [
@@ -561,6 +631,34 @@ const frames = [
 ];
 $('story').innerHTML = frames.map(([n,p,svg],i) => `${i?'<div class="arrow">›</div>':''}<div class="frame"><div class="watch"><div class="screen">${svg}</div></div><div class="n">${n}</div><p>${p}</p></div>`).join('');
 
+}
+
+// Optional user artwork from design/aliens/<slug>.(png|webp|jpg) (gitignored)
+let artTimer;
+function loadArt() {
+  ALIENS.forEach(a => {
+    const tryExt = exts => {
+      if (!exts.length) return;
+      const im = new Image();
+      im.onload = () => { IMG[a.slug] = im.src; clearTimeout(artTimer); artTimer = setTimeout(() => { buildStatic(); if (S.mode !== 'flash') render(); }, 60); };
+      im.onerror = () => tryExt(exts.slice(1));
+      im.src = `aliens/${a.slug}.${exts[0]}`;
+    };
+    tryExt(['png', 'webp', 'jpg']);
+  });
+}
+
+buildStatic();
+loadArt();
+
+// Deep links, e.g. ?mode=select&alien=3&battery=95
+const q = new URLSearchParams(location.search);
+if (q.has('battery')) { S.battery = +q.get('battery'); $('bat').value = S.battery; $('batLabel').textContent = S.battery + '%'; }
+if (q.has('alien')) { S.alien = (+q.get('alien')) % ALIENS.length; S.ringRot = S.ringTarget = -S.alien * STEP; }
+if (q.has('mode')) {
+  S.mode = q.get('mode');
+  if (S.mode === 'alien') S.alienUntil = Date.now() + S.alienDur * 1000;
+}
 render();
 </script>
 </body>

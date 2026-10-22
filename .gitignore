@@ -1,0 +1,13 @@
+.DS_Store
+*.log
+
+# Personal alien artwork (copyrighted, never commit). See design/aliens/README.md
+design/aliens/*
+!design/aliens/README.md
+
+# Android / Gradle (later milestones)
+.gradle/
+build/
+local.properties
+*.iml
+.idea/

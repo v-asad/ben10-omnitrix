@@ -28,4 +28,6 @@ fi
 echo "Installing on $SERIAL ($("$ADB" -s "$SERIAL" shell getprop ro.product.model | tr -d '\r'))"
 # App first: the face's alien slot binds to the app's complication provider.
 for apk in "${APKS[@]}"; do "$ADB" -s "$SERIAL" install -r "$apk"; done
+# Smoothness: AOT-compile the whole app now instead of waiting for background dex optimisation.
+"$ADB" -s "$SERIAL" shell cmd package compile -m speed -f dev.omnitrix.app >/dev/null
 echo "Installed. Long-press the current face on the watch and pick “Omnitrix”."

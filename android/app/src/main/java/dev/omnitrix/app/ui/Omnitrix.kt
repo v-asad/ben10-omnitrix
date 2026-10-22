@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.drawText
 import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.R
 import kotlin.math.atan2
@@ -103,4 +104,24 @@ fun TextMeasurer.fitted(text: String, style: (Float) -> TextStyle, size: Float, 
     val first = measure(text, style(size))
     val limit = maxWidth * scale
     return if (first.size.width <= limit) first else measure(text, style(size * limit / first.size.width * 0.98f))
+}
+
+/**
+ * Pre-measured glyphs for fast-changing numbers (countdowns): measured once, drawn per tick
+ * with zero text layout work.
+ */
+class DigitAtlas(measurer: TextMeasurer, style: TextStyle, chars: String = "0123456789:") {
+    private val glyphs = chars.associateWith { measurer.measure(it.toString(), style) }
+
+    fun width(text: String) = text.sumOf { glyphs[it]?.size?.width ?: 0 }
+
+    /** Draws [text] centred horizontally on [centerX], vertically centred on [centerY] (device px). */
+    fun draw(scope: androidx.compose.ui.graphics.drawscope.DrawScope, text: String, centerX: Float, centerY: Float) {
+        var x = centerX - width(text) / 2f
+        for (c in text) {
+            val g = glyphs[c] ?: continue
+            with(scope) { drawText(g, topLeft = Offset(x, centerY - g.size.height / 2f)) }
+            x += g.size.width
+        }
+    }
 }

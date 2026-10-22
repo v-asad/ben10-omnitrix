@@ -62,11 +62,33 @@ human again. Its energy is tied to your real battery.
 | Action | Input | Feedback |
 |---|---|---|
 | Raise dial | Tap the core on the face | Core scales up ("pops"), *chk-ching* haptic |
-| Cycle aliens | Touch-bezel swipe / rotary input / drag around ring / ← → swipe | One tick per alien, hologram swap, scan line |
+| Cycle aliens | Drag around the bezel (ring follows finger, snaps on release) / rotary input | One tick per alien; the new hologram materializes from the projector |
+| Alien dossier | Swipe up on the hologram (swipe down / tap to return) | Full profile slides in |
 | Transform | Tap the hologram (or press the top key) | Green full-screen flash, rising-pitch whoosh, long haptic |
 | Revert early | Long-press the core in alien form | Reverse flash, no cooldown penalty |
 | Timeout | Automatic | Warning beeps, red flash, cooldown |
 | Locked (red) | Any transform attempt | Low double buzz, the face shakes, hologram goes dark red |
+
+### The selector screen (dial up)
+```
+              ▼  ← selection notch at 12 o'clock
+         (🔥)        ← DNA carousel: every alien sits on the bezel ring,
+    (⚙)        (»)     fading with distance from the top
+   ╭──────────────────╮
+   │  10:10 · DNA 01/13│
+   │      ░▓▓▓░       │  ← hologram: alien art tinted green, scanlines,
+   │     ░▓▓▓▓▓░      │     edge fade, sweep line, flicker
+   │      ╲▓▓▓╱       │  ← light cone from the projector
+   │      ══●══       │  ← projector pad
+   │   HEATBLAST      │
+   │ PYRONITE · PYROS │
+   │ STR▮▮ SPD▮▮ INT▮ DEF▮│
+   │ TAP TO TRANSFORM │
+   ╰──────────────────╯
+```
+- Hologram colour follows the energy state: green, gold-lime in Master Control, dead red when locked.
+- **Dossier** (swipe up): bigger hologram, species, home world, three powers, weakness, the watch tool it opens, and STR / SPD / INT / DEF arcs in the four bezel quadrants.
+- **Artwork:** the app ships with original glyphs. Users can add their own alien images, which are tinted into holograms on the fly. They live on-device and aren't distributed. In the prototype that folder is `design/aliens/`, which is gitignored.
 
 **Timings (user-configurable):** alien time 10 min (default), cooldown 2 min. In Master Control there's no timeout.
 

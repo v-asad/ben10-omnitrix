@@ -9,5 +9,6 @@ class TimeoutReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         OmnitrixState(context).set(null)
         Transformer.refreshFace(context)
+        Haptics.timeout(context)
     }
 }

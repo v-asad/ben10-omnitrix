@@ -30,7 +30,7 @@ class OmnitrixStateService : SuspendingComplicationDataSourceService() {
         build(OmnitrixState(this).current())
 
     override fun getPreviewData(type: ComplicationType): ComplicationData =
-        build(Transformation(alien = 0, endsAtMillis = System.currentTimeMillis() + 10 * 60_000))
+        System.currentTimeMillis().let { now -> build(Transformation(alien = 0, startedAtMillis = now, endsAtMillis = now + 10 * 60_000)) }
 
     private fun build(transformation: Transformation?): ComplicationData {
         val name = transformation?.let { Aliens.names[it.alien] } ?: "HUMAN"

@@ -12,7 +12,8 @@ import dev.omnitrix.app.complication.OmnitrixStateService
 object Transformer {
 
     fun transform(context: Context, alien: Int, durationMillis: Long) {
-        val transformation = Transformation(alien, System.currentTimeMillis() + durationMillis)
+        val now = System.currentTimeMillis()
+        val transformation = Transformation(alien, now, now + durationMillis)
         OmnitrixState(context).set(transformation)
         scheduleTimeout(context, transformation.endsAtMillis)
         refreshFace(context)

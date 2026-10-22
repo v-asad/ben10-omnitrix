@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Omnitrix layer export</title>
+<!-- Renders one watch-face layer at 480×480 on a transparent background.
+     Driven by tools/build_watchface.py through headless Chrome:
+       export.html?layer=base&theme=green -->
+<style>
+  @font-face { font-family:"Orbitron"; font-weight:700; src:url("/android/watchface/src/main/res/font/orbitron_bold.ttf"); }
+  @font-face { font-family:"Orbitron"; font-weight:900; src:url("/android/watchface/src/main/res/font/orbitron_black.ttf"); }
+  html, body { margin:0; background:transparent; }
+  svg { display:block; width:480px; height:480px; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script src="omnitrix.js"></script>
+<script>
+const q = new URLSearchParams(location.search);
+const layer = q.get('layer'), themeName = q.get('theme') || 'green';
+const t = THEMES[themeName];
+const WHITE = '#ffffff';
+
+const curvedLabel = (id, pathId, txt, color, size, spacing) =>
+  `<text font-family="Orbitron" font-weight="700" font-size="${size}" letter-spacing="${spacing}" fill="${color}"><textPath href="#${pathId}${id}" startOffset="50%" text-anchor="middle">${txt}</textPath></text>`;
+
+// White glow filter so tinted layers keep their halo in any theme colour.
+const whiteGlow = id => `<filter id="wg${id}" x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+
+const LAYERS = {
+  // Everything static on the face: bezel, unlit slits, unlit seconds track, plate, core, wedges, top label.
+  base() {
+    const id = ++UID;
+    const o = { theme:'static', battery:0, countdown:0, time:new Date(2026,0,1,10,10,0) };
+    const label = themeName === 'master'
+      ? curvedLabel(id, 'arcTop', 'MASTER CONTROL', t.slit, 11, 4)
+      : curvedLabel(id, 'arcTop', themeName === 'alien' ? 'ALIEN FORM' : 'OMNITRIX', t.text, 11, 5);
+    return `${defs(t,id)}${bezel(t,id,o)}${hourglass(t,id,o)}${label}`;
+  },
+  // One lit energy slit (k = 0..3 in light order), white so the face can tint it.
+  slit() {
+    const id = ++UID, k = +q.get('k');
+    const angle = [225, 315, 45, 135][k];   // bottom-left, top-left, top-right, bottom-right
+    return `<defs>${whiteGlow(id)}</defs><g transform="rotate(${angle} 240 240)">
+      <rect x="233" y="5" width="14" height="18" rx="3" fill="${WHITE}" filter="url(#wg${id})"/></g>`;
+  },
+  // Master Control roster ring, rotated slowly by the face.
+  orbit() {
+    return ALIENS.map((a,i) => { const [x,y] = polar(170, i*360/ALIENS.length); return emblem(a, x, y, 14, WHITE); }).join('');
+  },
+  // Low-energy warning along the bottom of the plate (blinks on the face).
+  warn() {
+    const id = ++UID;
+    return `${defs(t,id)}${curvedLabel(id, 'arcBot', '▲ ENERGY LOW · RECHARGING', t.text, 12, 2)}`;
+  },
+  heart() {
+    return `<path d="M0 8C-4 2-14 -4-14-12C-14-18-9-22-4-22C-1-22 0-20 0-18C0-20 1-22 4-22C9-22 14-18 14-12C14-4 4 2 0 8Z" transform="translate(240 240) scale(.8)" fill="${WHITE}"/>`;
+  },
+  bolt() {
+    return `<path d="M244 226L232 243H240L236 254L248 237H240Z" fill="${WHITE}"/>`;
+  },
+  // Always-on display: hourglass outline only.
+  ambient() {
+    const id = ++UID, c = '#3fae22';
+    return `${defs(THEMES.green,id)}
+      <circle cx="240" cy="240" r="226" fill="none" stroke="#1d2a1b" stroke-width="2"/>
+      <circle cx="240" cy="240" r="150" fill="none" stroke="${c}" stroke-width="2"/>
+      <g clip-path="url(#clip${id})">
+        <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${c}" stroke-width="2"/>
+        <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${c}" stroke-width="2"/>
+      </g>`;
+  },
+  // Picker thumbnail: the full green face at 10:10.
+  preview() {
+    const svg = faceSVG({ theme:themeName, time:new Date(2026,9,22,10,10,38), battery:64, hr:72, steps:6842, alien:0 });
+    return svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  },
+};
+
+document.fonts.load('900 20px Orbitron').then(() => document.fonts.load('700 20px Orbitron')).finally(() => {
+  document.getElementById('out').innerHTML =
+    `<svg viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">${LAYERS[layer]()}</svg>`;
+  document.title = 'ready';
+});
+</script>
+</body>
+</html>

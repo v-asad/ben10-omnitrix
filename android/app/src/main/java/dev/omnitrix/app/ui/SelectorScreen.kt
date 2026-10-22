@@ -1,6 +1,5 @@
 package dev.omnitrix.app.ui
 
-import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.Energy
 import dev.omnitrix.app.Haptics
+import dev.omnitrix.app.Sounds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,10 +85,14 @@ fun SelectorScreen(
     art: AlienArt,
     fx: FxCache,
     initialAlien: Int,
+    /** Non-null while the Omnitrix is recharging after a timeout. */
+    rechargeText: String?,
     onSelectedChange: (Int) -> Unit,
     onTransform: (Int) -> Unit,
     onOpenDossier: (Int) -> Unit,
+    onOpenMenu: () -> Unit,
 ) {
+    val locked = energy.locked || rechargeText != null
     val context = LocalContext.current
     val view = LocalView.current
     val scope = rememberCoroutineScope()
@@ -118,7 +122,8 @@ fun SelectorScreen(
         if (index == selected) return
         selected = index
         onSelectedChange(index)
-        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        Haptics.tick(view)
+        Sounds.play(context, Sounds.Cue.TICK)
         scope.launch {
             materialize.snapTo(0f)
             materialize.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 320f))
@@ -134,8 +139,9 @@ fun SelectorScreen(
 
     fun slam() {
         if (transforming) return
-        if (energy.locked) {
+        if (locked) {
             Haptics.denied(context)
+            Sounds.play(context, Sounds.Cue.DENIED)
             scope.launch {
                 repeat(3) { shake.animateTo(9f, tween(35)); shake.animateTo(-9f, tween(35)) }
                 shake.animateTo(0f, tween(35))
@@ -144,6 +150,7 @@ fun SelectorScreen(
         }
         transforming = true
         Haptics.transform(context)
+        Sounds.play(context, Sounds.Cue.SLAM)
         scope.launch {
             materialize.animateTo(0f, tween(150))     // collapse into the projector, then the transformation plays
             onTransform(selected)
@@ -198,6 +205,7 @@ fun SelectorScreen(
                             scope.launch { position.animateTo(target[0], spring(dampingRatio = 0.8f, stiffness = 380f)) }
                         }
                         moved && dy < -radius * 0.25f -> onOpenDossier(selected)
+                        moved && dy > radius * 0.25f -> onOpenMenu()
                     }
                 }
             },
@@ -220,8 +228,8 @@ fun SelectorScreen(
             measurer.measure("DNA %02d / %02d · %s".format(selected + 1, count, alien.era),
                 orbitron(density, scale, 10f, FontWeight.Bold, Color(0xFF6F9A66), 1.5f))
         }
-        val cta = remember(scale, energy) {
-            measurer.measure(if (energy.locked) "NO ENERGY · CHARGE" else "TAP TO TRANSFORM",
+        val cta = remember(scale, energy, rechargeText) {
+            measurer.measure(rechargeText ?: if (energy.locked) "NO ENERGY · CHARGE" else "TAP TO TRANSFORM",
                 orbitron(density, scale, 10f, FontWeight.Bold, main, 3f))
         }
         val statLabels = remember(scale) {
@@ -241,7 +249,7 @@ fun SelectorScreen(
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
                 drawBezel(kit, art, pos, count)
                 drawCore(kit, spin.value)
-                drawHologram(kit, art, selected, materialize.value, t, energy.locked)
+                drawHologram(kit, art, selected, materialize.value, t, locked)
                 drawStats(kit, alien.stats)
             }
             drawCentered(index, 72f, scale)

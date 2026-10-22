@@ -190,7 +190,8 @@ WFF is stateless, so thresholds are exact (no hysteresis). That's fine, because 
 The face has to know the app's state. Plan:
 1. The app exposes a **complication data source** publishing `RANGED_VALUE` (remaining seconds / total) plus the alien id in its text.
 2. The face has a fixed, non-configurable complication slot whose **default provider is our own app**. When it reports an active alien, the slot's own drawing layer covers the dial with the white alien theme. When it's empty, nothing is drawn.
-3. The app pushes an update on transform and revert, and on timeout via `ComplicationDataSourceUpdateRequester`.
+3. **The same slot handles tapping the core.** WFF's `Launch` element only accepts system targets (alarm, heart rate, settings…), so the only way to open our own app from the face is a complication tap. The slot sits over the core, and its tap action opens the selector.
+4. The app pushes an update on transform and revert, and on timeout via `ComplicationDataSourceUpdateRequester`.
 
 **Risk:** this needs a hands-on spike on the real watch (update latency, how large a complication may draw, whether default-provider permission is granted automatically).
 **Fallback:** while transformed, the app itself stays foreground as an **Ongoing Activity** and draws the white face in Compose. Same look, slightly more battery. The user never sees the difference.
@@ -210,8 +211,8 @@ The face has to know the app's state. Plan:
 
 ## 7. Milestones
 
-1. **Design sign-off**: this doc + `design/index.html` (← we are here)
-2. **WFF face v1**: green / master / red themes, time, HR, steps, battery slits, AOD. Sideload and live with it for a day
+1. ✅ **Design sign-off**: this doc + `design/index.html`
+2. ✅ **WFF face v1**: green / master / red themes, time, HR, steps, battery slits, AOD. Built from the prototype art by `tools/build_watchface.py`, passes Google's WFF v4 validator, 3.4 MB active / 1.6 MB ambient. **Next: sideload and live with it for a day** (← we are here)
 3. **Spike**: complication bridge for alien mode (go/no-go → fallback)
 4. **App v1**: selector, transform flash, alien timer, timeout, cooldown, haptics
 5. **Alien tools**: wire up the 13 shortcuts

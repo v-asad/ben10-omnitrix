@@ -7,9 +7,20 @@ import android.os.VibratorManager
 /** Omnitrix haptic vocabulary. */
 object Haptics {
     private fun vibrate(context: Context, timings: LongArray, amplitudes: IntArray) {
+        val strength = Settings(context).haptics.amplitude
+        if (strength == 0f) return
         val vibrator = context.getSystemService(VibratorManager::class.java)?.defaultVibrator ?: return
-        if (vibrator.hasVibrator()) vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+        val scaled = IntArray(amplitudes.size) { (amplitudes[it] * strength).toInt().coerceIn(0, 255) }
+        if (vibrator.hasVibrator()) vibrator.vibrate(VibrationEffect.createWaveform(timings, scaled, -1))
     }
+
+    /** Carousel detent tick (respects the setting). */
+    fun tick(view: android.view.View) {
+        if (Settings(view.context).haptics != Settings.Haptics.OFF) view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+    }
+
+    /** Recharge finished: the Omnitrix is ready again. */
+    fun ready(context: Context) = vibrate(context, longArrayOf(0, 30, 70, 30), intArrayOf(0, 140, 0, 220))
 
     /** Dial pops up. */
     fun dialUp(context: Context) = vibrate(context, longArrayOf(0, 18, 50, 28), intArrayOf(0, 120, 0, 200))

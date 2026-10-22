@@ -1,55 +1,1208 @@
 {
-  "_comment": "Omnitrix roster, in carousel order. Stats are fan ratings out of 10: STR, SPD, INT, DEF. Read by the app (assets) and tools/build_*.py.",
-  "aliens": [
-    {"slug": "heatblast", "name": "HEATBLAST", "era": "OS", "species": "Pyronite", "planet": "Pyros", "powers": ["Pyrokinesis", "Fire blasts", "Flame-jet flight"], "weakness": "Water & extreme cold", "stats": [6, 6, 5, 6]},
-    {"slug": "wildmutt", "name": "WILDMUTT", "era": "OS", "species": "Vulpimancer", "planet": "Vulpin", "powers": ["Super senses", "Agility", "Echolocation"], "weakness": "Loud noise, no eyes", "stats": [6, 7, 3, 5]},
-    {"slug": "diamondhead", "name": "DIAMONDHEAD", "era": "OS", "species": "Petrosapien", "planet": "Petropia", "powers": ["Crystal shards", "Diamond armor", "Light refraction"], "weakness": "Sonic vibrations", "stats": [7, 4, 5, 10]},
-    {"slug": "xlr8", "name": "XLR8", "era": "OS", "species": "Kineceleran", "planet": "Kinet", "powers": ["Super speed", "Hyper reflexes", "Visor shield"], "weakness": "Low-friction surfaces", "stats": [4, 10, 5, 4]},
-    {"slug": "grey-matter", "name": "GREY MATTER", "era": "OS", "species": "Galvan", "planet": "Galvan Prime", "powers": ["Genius intellect", "Tiny size", "Tech know-how"], "weakness": "Physically fragile", "stats": [1, 3, 10, 1]},
-    {"slug": "four-arms", "name": "FOUR ARMS", "era": "OS", "species": "Tetramand", "planet": "Khoros", "powers": ["Super strength", "Shockwave clap", "Huge leaps"], "weakness": "Big, slow target", "stats": [10, 4, 4, 8]},
-    {"slug": "stinkfly", "name": "STINKFLY", "era": "OS", "species": "Lepidopterran", "planet": "Lepidopterra", "powers": ["Flight", "Slime spit", "Stink spray"], "weakness": "Wet wings", "stats": [3, 7, 4, 3]},
-    {"slug": "ripjaws", "name": "RIPJAWS", "era": "OS", "species": "Piscciss Volann", "planet": "Piscciss", "powers": ["Aquatic speed", "Crushing bite", "Deep-sea vision"], "weakness": "Dries out on land", "stats": [6, 7, 4, 5]},
-    {"slug": "upgrade", "name": "UPGRADE", "era": "OS", "species": "Galvanic Mechamorph", "planet": "Galvan B", "powers": ["Merges with tech", "Upgrades machines", "Shapeshift"], "weakness": "Water & EMP", "stats": [3, 5, 8, 4]},
-    {"slug": "ghostfreak", "name": "GHOSTFREAK", "era": "OS", "species": "Ectonurite", "planet": "Anur Phaetos", "powers": ["Intangibility", "Invisibility", "Possession"], "weakness": "Direct sunlight", "stats": [4, 6, 7, 7]},
-    {"slug": "cannonbolt", "name": "CANNONBOLT", "era": "OS", "species": "Arburian Pelarota", "planet": "Arburia", "powers": ["Armored shell", "Rolling charge", "Ricochet"], "weakness": "Hard to steer", "stats": [7, 8, 3, 9]},
-    {"slug": "wildvine", "name": "WILDVINE", "era": "OS", "species": "Florauna", "planet": "Flors Verdance", "powers": ["Stretching vines", "Explosive seeds", "Regrowth"], "weakness": "Fire", "stats": [5, 5, 4, 6]},
-    {"slug": "blitzwolfer", "name": "BLITZWOLFER", "era": "OS", "species": "Loboan", "planet": "Luna Lobo", "powers": ["Sonic howl", "Claws & fangs", "Night vision"], "weakness": "Sound overload", "stats": [7, 7, 4, 6]},
-    {"slug": "snare-oh", "name": "SNARE-OH", "era": "OS", "species": "Thep Khufan", "planet": "Anur Khufos", "powers": ["Bandage tendrils", "Body splitting", "Grapple"], "weakness": "Unravelling", "stats": [6, 5, 4, 6]},
-    {"slug": "frankenstrike", "name": "FRANKENSTRIKE", "era": "OS", "species": "Transylian", "planet": "Anur Transyl", "powers": ["Electrokinesis", "Super strength", "Lightning bolts"], "weakness": "Short circuits", "stats": [8, 4, 5, 7]},
-    {"slug": "upchuck", "name": "UPCHUCK", "era": "OS", "species": "Gourmand", "planet": "Peptos XI", "powers": ["Eats anything", "Explosive spit", "Four tongues"], "weakness": "Indigestion", "stats": [4, 4, 3, 5]},
-    {"slug": "ditto", "name": "DITTO", "era": "OS", "species": "Splixson", "planet": "Hathor", "powers": ["Self-duplication", "Swarm tactics", "Agility"], "weakness": "Shared pain", "stats": [3, 6, 4, 2]},
-    {"slug": "eye-guy", "name": "EYE GUY", "era": "OS", "species": "Opticoid", "planet": "Sightra", "powers": ["Eye beams", "360° vision", "Freeze rays"], "weakness": "Blinding light", "stats": [5, 4, 5, 4]},
-    {"slug": "way-big", "name": "WAY BIG", "era": "OS", "species": "To'kustar", "planet": "Cosmic storms", "powers": ["Colossal size", "Cosmic ray", "Titan strength"], "weakness": "Too big for cities", "stats": [10, 5, 5, 10]},
-    {"slug": "spitter", "name": "SPITTER", "era": "OS", "species": "Sphoeroid", "planet": "Unknown", "powers": ["Slime spit", "Amphibious", "Sticky traps"], "weakness": "Slow on land", "stats": [4, 3, 3, 4]},
-    {"slug": "buzzshock", "name": "BUZZSHOCK", "era": "OS", "species": "Nosedeenian", "planet": "Nosedeen", "powers": ["Electricity", "Self-cloning", "Rides power lines"], "weakness": "Grounding", "stats": [2, 8, 4, 3]},
-    {"slug": "arctiguana", "name": "ARCTIGUANA", "era": "OS", "species": "Polar Manzardill", "planet": "X'nelli", "powers": ["Freezing breath", "Ice armor", "Cold immunity"], "weakness": "Heat", "stats": [6, 5, 4, 6]},
-    {"slug": "swampfire", "name": "SWAMPFIRE", "era": "AF", "species": "Methanosian", "planet": "Methanos", "powers": ["Methane fire", "Plant control", "Regeneration"], "weakness": "Freezing cold", "stats": [7, 5, 4, 8]},
-    {"slug": "echo-echo", "name": "ECHO ECHO", "era": "AF", "species": "Sonorosian", "planet": "Sonorosia", "powers": ["Sonic scream", "Self-cloning", "Sound waves"], "weakness": "Fragile suit", "stats": [3, 4, 6, 3]},
-    {"slug": "humungousaur", "name": "HUMUNGOUSAUR", "era": "AF", "species": "Vaxasaurian", "planet": "Terradino", "powers": ["Grows to 60 ft", "Super strength", "Armored hide"], "weakness": "Big, slow target", "stats": [10, 4, 4, 9]},
-    {"slug": "jetray", "name": "JETRAY", "era": "AF", "species": "Aerophibian", "planet": "Aldabra", "powers": ["Hypersonic flight", "Neuroshock blasts", "Swims too"], "weakness": "Thin armor", "stats": [4, 10, 5, 4]},
-    {"slug": "big-chill", "name": "BIG CHILL", "era": "AF", "species": "Necrofriggian", "planet": "Kylmyys", "powers": ["Freezing breath", "Intangibility", "Flight"], "weakness": "Heat & fire", "stats": [5, 7, 5, 6]},
-    {"slug": "chromastone", "name": "CHROMASTONE", "era": "AF", "species": "Crystalsapien", "planet": "Petropia", "powers": ["Absorbs energy", "Prism blasts", "Crystal body"], "weakness": "Overload", "stats": [7, 4, 5, 9]},
-    {"slug": "brainstorm", "name": "BRAINSTORM", "era": "AF", "species": "Cerebrocrustacean", "planet": "Encephalonus IV", "powers": ["Electrokinesis", "Genius intellect", "Force fields"], "weakness": "Overthinking", "stats": [3, 3, 10, 5]},
-    {"slug": "spidermonkey", "name": "SPIDERMONKEY", "era": "AF", "species": "Arachnichimp", "planet": "Aranhaschimmia", "powers": ["Web slinging", "Wall crawling", "Agility"], "weakness": "Light build", "stats": [4, 8, 4, 3]},
-    {"slug": "goop", "name": "GOOP", "era": "AF", "species": "Polymorph", "planet": "Viscosia", "powers": ["Shapeshifting slime", "Acid", "Anti-gravity disc"], "weakness": "Loses the disc", "stats": [4, 5, 4, 7]},
-    {"slug": "alien-x", "name": "ALIEN X", "era": "AF", "species": "Celestialsapien", "planet": "Forge of Creation", "powers": ["Reality warping", "Omnipotence", "Time & space"], "weakness": "Needs Bellicus & Serena to agree", "stats": [10, 10, 10, 10]},
-    {"slug": "lodestar", "name": "LODESTAR", "era": "AF", "species": "Biosovortian", "planet": "Magnetar", "powers": ["Magnetism", "Metal control", "Detachable head"], "weakness": "Non-metal foes", "stats": [6, 4, 5, 6]},
-    {"slug": "rath", "name": "RATH", "era": "AF", "species": "Appoplexian", "planet": "Appoplexia", "powers": ["Brute strength", "Arm claws", "Wrestling"], "weakness": "Hot temper", "stats": [9, 6, 2, 7]},
-    {"slug": "nanomech", "name": "NANOMECH", "era": "AF", "species": "Nanochip", "planet": "Nanochip Hive", "powers": ["Microscopic size", "Bio-electric blasts", "Flight"], "weakness": "Easily swatted", "stats": [1, 7, 6, 2]},
-    {"slug": "water-hazard", "name": "WATER HAZARD", "era": "UA", "species": "Orishan", "planet": "Orisha", "powers": ["Water cannons", "Exoskeleton", "Hydrokinesis"], "weakness": "Runs dry", "stats": [7, 4, 4, 8]},
-    {"slug": "ampfibian", "name": "AMPFIBIAN", "era": "UA", "species": "Amperi", "planet": "Unknown", "powers": ["Electricity", "Intangibility", "Underwater flight"], "weakness": "Grounding", "stats": [4, 7, 5, 4]},
-    {"slug": "armodrillo", "name": "ARMODRILLO", "era": "UA", "species": "Talpaedan", "planet": "Unknown", "powers": ["Jackhammer arms", "Tunneling", "Earthquakes"], "weakness": "Slow", "stats": [9, 3, 3, 8]},
-    {"slug": "terraspin", "name": "TERRASPIN", "era": "UA", "species": "Geochelone Aerio", "planet": "Unknown", "powers": ["Wind blasts", "Shell spin", "Gliding"], "weakness": "Flipped over", "stats": [5, 6, 4, 8]},
-    {"slug": "nrg", "name": "NRG", "era": "UA", "species": "Prypiatosian-B", "planet": "Prypiatos", "powers": ["Radiation", "Heat beams", "Containment suit"], "weakness": "Suit breach", "stats": [8, 3, 5, 9]},
-    {"slug": "fasttrack", "name": "FASTTRACK", "era": "UA", "species": "Citrakayah", "planet": "Unknown", "powers": ["Super speed", "Strength", "Endurance"], "weakness": "Tight corners", "stats": [6, 9, 4, 5]},
-    {"slug": "chamalien", "name": "CHAMALIEN", "era": "UA", "species": "Merlinisapien", "planet": "Unknown", "powers": ["Invisibility", "Stinger tail", "Wall crawling"], "weakness": "Thermal sight", "stats": [4, 6, 5, 4]},
-    {"slug": "clockwork", "name": "CLOCKWORK", "era": "UA", "species": "Chronosapien", "planet": "Unknown", "powers": ["Time rays", "Rewind", "Glimpse the future"], "weakness": "Slow, heavy body", "stats": [5, 2, 8, 7]},
-    {"slug": "jury-rigg", "name": "JURY RIGG", "era": "UA", "species": "Planchaküle", "planet": "Unknown", "powers": ["Dismantle machines", "Rebuild anything", "Hyperactive"], "weakness": "Can't stop breaking things", "stats": [3, 7, 6, 3]},
-    {"slug": "eatle", "name": "EATLE", "era": "UA", "species": "Oryctini", "planet": "Unknown", "powers": ["Eats anything", "Horn lasers", "Armored shell"], "weakness": "Always hungry", "stats": [8, 3, 3, 8]},
-    {"slug": "ultimate-humungousaur", "name": "ULT. HUMUNGOUSAUR", "era": "ULTIMATE", "species": "Evolved Vaxasaurian", "planet": "Ultimatrix", "powers": ["Bone missiles", "Titan strength", "Spiked armor"], "weakness": "Evolution strain", "stats": [10, 4, 4, 10]},
-    {"slug": "ultimate-swampfire", "name": "ULT. SWAMPFIRE", "era": "ULTIMATE", "species": "Evolved Methanosian", "planet": "Ultimatrix", "powers": ["Blue fire", "Explosive seeds", "Regeneration"], "weakness": "Freezing cold", "stats": [8, 5, 4, 9]},
-    {"slug": "ultimate-big-chill", "name": "ULT. BIG CHILL", "era": "ULTIMATE", "species": "Evolved Necrofriggian", "planet": "Ultimatrix", "powers": ["Cold fire", "Intangibility", "Flight"], "weakness": "Extreme heat", "stats": [6, 8, 5, 7]},
-    {"slug": "ultimate-echo-echo", "name": "ULT. ECHO ECHO", "era": "ULTIMATE", "species": "Evolved Sonorosian", "planet": "Ultimatrix", "powers": ["Sonic discs", "Sound cannons", "Flight"], "weakness": "Disc control", "stats": [5, 6, 6, 5]},
-    {"slug": "ultimate-spidermonkey", "name": "ULT. SPIDERMONKEY", "era": "ULTIMATE", "species": "Evolved Arachnichimp", "planet": "Ultimatrix", "powers": ["Giant webs", "Super strength", "Six legs"], "weakness": "Bulky", "stats": [8, 7, 4, 6]}
-  ]
+ "_comment": "Omnitrix roster, in carousel order. Stats are fan ratings out of 10: STR, SPD, INT, DEF. fx = transformation [family, primary colour, secondary colour, optional variant]. Read by the app (assets) and tools/build_*.py.",
+ "aliens": [
+  {
+   "slug": "heatblast",
+   "name": "HEATBLAST",
+   "era": "OS",
+   "species": "Pyronite",
+   "planet": "Pyros",
+   "powers": [
+    "Pyrokinesis",
+    "Fire blasts",
+    "Flame-jet flight"
+   ],
+   "weakness": "Water & extreme cold",
+   "stats": [
+    6,
+    6,
+    5,
+    6
+   ],
+   "fx": [
+    "fire",
+    "#FF5A00",
+    "#FFD060"
+   ]
+  },
+  {
+   "slug": "wildmutt",
+   "name": "WILDMUTT",
+   "era": "OS",
+   "species": "Vulpimancer",
+   "planet": "Vulpin",
+   "powers": [
+    "Super senses",
+    "Agility",
+    "Echolocation"
+   ],
+   "weakness": "Loud noise, no eyes",
+   "stats": [
+    6,
+    7,
+    3,
+    5
+   ],
+   "fx": [
+    "feral",
+    "#FF9A2E",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "diamondhead",
+   "name": "DIAMONDHEAD",
+   "era": "OS",
+   "species": "Petrosapien",
+   "planet": "Petropia",
+   "powers": [
+    "Crystal shards",
+    "Diamond armor",
+    "Light refraction"
+   ],
+   "weakness": "Sonic vibrations",
+   "stats": [
+    7,
+    4,
+    5,
+    10
+   ],
+   "fx": [
+    "crystal",
+    "#7FF5DD",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "xlr8",
+   "name": "XLR8",
+   "era": "OS",
+   "species": "Kineceleran",
+   "planet": "Kinet",
+   "powers": [
+    "Super speed",
+    "Hyper reflexes",
+    "Visor shield"
+   ],
+   "weakness": "Low-friction surfaces",
+   "stats": [
+    4,
+    10,
+    5,
+    4
+   ],
+   "fx": [
+    "speed",
+    "#6FE7FF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "grey-matter",
+   "name": "GREY MATTER",
+   "era": "OS",
+   "species": "Galvan",
+   "planet": "Galvan Prime",
+   "powers": [
+    "Genius intellect",
+    "Tiny size",
+    "Tech know-how"
+   ],
+   "weakness": "Physically fragile",
+   "stats": [
+    1,
+    3,
+    10,
+    1
+   ],
+   "fx": [
+    "shrink",
+    "#9BFF66",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "four-arms",
+   "name": "FOUR ARMS",
+   "era": "OS",
+   "species": "Tetramand",
+   "planet": "Khoros",
+   "powers": [
+    "Super strength",
+    "Shockwave clap",
+    "Huge leaps"
+   ],
+   "weakness": "Big, slow target",
+   "stats": [
+    10,
+    4,
+    4,
+    8
+   ],
+   "fx": [
+    "pound",
+    "#FFC46B",
+    "#B08A5A"
+   ]
+  },
+  {
+   "slug": "stinkfly",
+   "name": "STINKFLY",
+   "era": "OS",
+   "species": "Lepidopterran",
+   "planet": "Lepidopterra",
+   "powers": [
+    "Flight",
+    "Slime spit",
+    "Stink spray"
+   ],
+   "weakness": "Wet wings",
+   "stats": [
+    3,
+    7,
+    4,
+    3
+   ],
+   "fx": [
+    "buzz",
+    "#D7FF8A",
+    "#9BFF3A"
+   ]
+  },
+  {
+   "slug": "ripjaws",
+   "name": "RIPJAWS",
+   "era": "OS",
+   "species": "Piscciss Volann",
+   "planet": "Piscciss",
+   "powers": [
+    "Aquatic speed",
+    "Crushing bite",
+    "Deep-sea vision"
+   ],
+   "weakness": "Dries out on land",
+   "stats": [
+    6,
+    7,
+    4,
+    5
+   ],
+   "fx": [
+    "water",
+    "#5FD4FF",
+    "#0B4F8C"
+   ]
+  },
+  {
+   "slug": "upgrade",
+   "name": "UPGRADE",
+   "era": "OS",
+   "species": "Galvanic Mechamorph",
+   "planet": "Galvan B",
+   "powers": [
+    "Merges with tech",
+    "Upgrades machines",
+    "Shapeshift"
+   ],
+   "weakness": "Water & EMP",
+   "stats": [
+    3,
+    5,
+    8,
+    4
+   ],
+   "fx": [
+    "circuit",
+    "#7DFF4A",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "ghostfreak",
+   "name": "GHOSTFREAK",
+   "era": "OS",
+   "species": "Ectonurite",
+   "planet": "Anur Phaetos",
+   "powers": [
+    "Intangibility",
+    "Invisibility",
+    "Possession"
+   ],
+   "weakness": "Direct sunlight",
+   "stats": [
+    4,
+    6,
+    7,
+    7
+   ],
+   "fx": [
+    "ghost",
+    "#B79CFF",
+    "#2A1240"
+   ]
+  },
+  {
+   "slug": "cannonbolt",
+   "name": "CANNONBOLT",
+   "era": "OS",
+   "species": "Arburian Pelarota",
+   "planet": "Arburia",
+   "powers": [
+    "Armored shell",
+    "Rolling charge",
+    "Ricochet"
+   ],
+   "weakness": "Hard to steer",
+   "stats": [
+    7,
+    8,
+    3,
+    9
+   ],
+   "fx": [
+    "roll",
+    "#F2F2E6",
+    "#F5B800"
+   ]
+  },
+  {
+   "slug": "wildvine",
+   "name": "WILDVINE",
+   "era": "OS",
+   "species": "Florauna",
+   "planet": "Flors Verdance",
+   "powers": [
+    "Stretching vines",
+    "Explosive seeds",
+    "Regrowth"
+   ],
+   "weakness": "Fire",
+   "stats": [
+    5,
+    5,
+    4,
+    6
+   ],
+   "fx": [
+    "plant",
+    "#3FBF3F",
+    "#9BE36B"
+   ]
+  },
+  {
+   "slug": "blitzwolfer",
+   "name": "BLITZWOLFER",
+   "era": "OS",
+   "species": "Loboan",
+   "planet": "Luna Lobo",
+   "powers": [
+    "Sonic howl",
+    "Claws & fangs",
+    "Night vision"
+   ],
+   "weakness": "Sound overload",
+   "stats": [
+    7,
+    7,
+    4,
+    6
+   ],
+   "fx": [
+    "sonic",
+    "#9BFF66",
+    "#8FA3B8"
+   ]
+  },
+  {
+   "slug": "snare-oh",
+   "name": "SNARE-OH",
+   "era": "OS",
+   "species": "Thep Khufan",
+   "planet": "Anur Khufos",
+   "powers": [
+    "Bandage tendrils",
+    "Body splitting",
+    "Grapple"
+   ],
+   "weakness": "Unravelling",
+   "stats": [
+    6,
+    5,
+    4,
+    6
+   ],
+   "fx": [
+    "mummy",
+    "#E8DFC4",
+    "#8C7A55"
+   ]
+  },
+  {
+   "slug": "frankenstrike",
+   "name": "FRANKENSTRIKE",
+   "era": "OS",
+   "species": "Transylian",
+   "planet": "Anur Transyl",
+   "powers": [
+    "Electrokinesis",
+    "Super strength",
+    "Lightning bolts"
+   ],
+   "weakness": "Short circuits",
+   "stats": [
+    8,
+    4,
+    5,
+    7
+   ],
+   "fx": [
+    "electric",
+    "#CFFF4A",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "upchuck",
+   "name": "UPCHUCK",
+   "era": "OS",
+   "species": "Gourmand",
+   "planet": "Peptos XI",
+   "powers": [
+    "Eats anything",
+    "Explosive spit",
+    "Four tongues"
+   ],
+   "weakness": "Indigestion",
+   "stats": [
+    4,
+    4,
+    3,
+    5
+   ],
+   "fx": [
+    "goo",
+    "#7BC63A",
+    "#C7F27A"
+   ]
+  },
+  {
+   "slug": "ditto",
+   "name": "DITTO",
+   "era": "OS",
+   "species": "Splixson",
+   "planet": "Hathor",
+   "powers": [
+    "Self-duplication",
+    "Swarm tactics",
+    "Agility"
+   ],
+   "weakness": "Shared pain",
+   "stats": [
+    3,
+    6,
+    4,
+    2
+   ],
+   "fx": [
+    "clone",
+    "#FFFFFF",
+    "#9BFF66"
+   ]
+  },
+  {
+   "slug": "eye-guy",
+   "name": "EYE GUY",
+   "era": "OS",
+   "species": "Opticoid",
+   "planet": "Sightra",
+   "powers": [
+    "Eye beams",
+    "360° vision",
+    "Freeze rays"
+   ],
+   "weakness": "Blinding light",
+   "stats": [
+    5,
+    4,
+    5,
+    4
+   ],
+   "fx": [
+    "eye",
+    "#9BFF66",
+    "#F7D24A"
+   ]
+  },
+  {
+   "slug": "way-big",
+   "name": "WAY BIG",
+   "era": "OS",
+   "species": "To'kustar",
+   "planet": "Cosmic storms",
+   "powers": [
+    "Colossal size",
+    "Cosmic ray",
+    "Titan strength"
+   ],
+   "weakness": "Too big for cities",
+   "stats": [
+    10,
+    5,
+    5,
+    10
+   ],
+   "fx": [
+    "grow",
+    "#E8E8E8",
+    "#D62F2F"
+   ]
+  },
+  {
+   "slug": "spitter",
+   "name": "SPITTER",
+   "era": "OS",
+   "species": "Sphoeroid",
+   "planet": "Unknown",
+   "powers": [
+    "Slime spit",
+    "Amphibious",
+    "Sticky traps"
+   ],
+   "weakness": "Slow on land",
+   "stats": [
+    4,
+    3,
+    3,
+    4
+   ],
+   "fx": [
+    "goo",
+    "#D8E85A",
+    "#8FA82E"
+   ]
+  },
+  {
+   "slug": "buzzshock",
+   "name": "BUZZSHOCK",
+   "era": "OS",
+   "species": "Nosedeenian",
+   "planet": "Nosedeen",
+   "powers": [
+    "Electricity",
+    "Self-cloning",
+    "Rides power lines"
+   ],
+   "weakness": "Grounding",
+   "stats": [
+    2,
+    8,
+    4,
+    3
+   ],
+   "fx": [
+    "electric",
+    "#3BFF6A",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "arctiguana",
+   "name": "ARCTIGUANA",
+   "era": "OS",
+   "species": "Polar Manzardill",
+   "planet": "X'nelli",
+   "powers": [
+    "Freezing breath",
+    "Ice armor",
+    "Cold immunity"
+   ],
+   "weakness": "Heat",
+   "stats": [
+    6,
+    5,
+    4,
+    6
+   ],
+   "fx": [
+    "ice",
+    "#9FE6FF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "swampfire",
+   "name": "SWAMPFIRE",
+   "era": "AF",
+   "species": "Methanosian",
+   "planet": "Methanos",
+   "powers": [
+    "Methane fire",
+    "Plant control",
+    "Regeneration"
+   ],
+   "weakness": "Freezing cold",
+   "stats": [
+    7,
+    5,
+    4,
+    8
+   ],
+   "fx": [
+    "fire",
+    "#FF7A1A",
+    "#B8FF4A"
+   ]
+  },
+  {
+   "slug": "echo-echo",
+   "name": "ECHO ECHO",
+   "era": "AF",
+   "species": "Sonorosian",
+   "planet": "Sonorosia",
+   "powers": [
+    "Sonic scream",
+    "Self-cloning",
+    "Sound waves"
+   ],
+   "weakness": "Fragile suit",
+   "stats": [
+    3,
+    4,
+    6,
+    3
+   ],
+   "fx": [
+    "clone",
+    "#FFFFFF",
+    "#6FE7FF"
+   ]
+  },
+  {
+   "slug": "humungousaur",
+   "name": "HUMUNGOUSAUR",
+   "era": "AF",
+   "species": "Vaxasaurian",
+   "planet": "Terradino",
+   "powers": [
+    "Grows to 60 ft",
+    "Super strength",
+    "Armored hide"
+   ],
+   "weakness": "Big, slow target",
+   "stats": [
+    10,
+    4,
+    4,
+    9
+   ],
+   "fx": [
+    "grow",
+    "#D9A066",
+    "#8C5A2E"
+   ]
+  },
+  {
+   "slug": "jetray",
+   "name": "JETRAY",
+   "era": "AF",
+   "species": "Aerophibian",
+   "planet": "Aldabra",
+   "powers": [
+    "Hypersonic flight",
+    "Neuroshock blasts",
+    "Swims too"
+   ],
+   "weakness": "Thin armor",
+   "stats": [
+    4,
+    10,
+    5,
+    4
+   ],
+   "fx": [
+    "speed",
+    "#FF4A3A",
+    "#FFD24A"
+   ]
+  },
+  {
+   "slug": "big-chill",
+   "name": "BIG CHILL",
+   "era": "AF",
+   "species": "Necrofriggian",
+   "planet": "Kylmyys",
+   "powers": [
+    "Freezing breath",
+    "Intangibility",
+    "Flight"
+   ],
+   "weakness": "Heat & fire",
+   "stats": [
+    5,
+    7,
+    5,
+    6
+   ],
+   "fx": [
+    "ice",
+    "#4AA8FF",
+    "#E6F6FF"
+   ]
+  },
+  {
+   "slug": "chromastone",
+   "name": "CHROMASTONE",
+   "era": "AF",
+   "species": "Crystalsapien",
+   "planet": "Petropia",
+   "powers": [
+    "Absorbs energy",
+    "Prism blasts",
+    "Crystal body"
+   ],
+   "weakness": "Overload",
+   "stats": [
+    7,
+    4,
+    5,
+    9
+   ],
+   "fx": [
+    "crystal",
+    "#E040FB",
+    "#FFFFFF",
+    "prism"
+   ]
+  },
+  {
+   "slug": "brainstorm",
+   "name": "BRAINSTORM",
+   "era": "AF",
+   "species": "Cerebrocrustacean",
+   "planet": "Encephalonus IV",
+   "powers": [
+    "Electrokinesis",
+    "Genius intellect",
+    "Force fields"
+   ],
+   "weakness": "Overthinking",
+   "stats": [
+    3,
+    3,
+    10,
+    5
+   ],
+   "fx": [
+    "electric",
+    "#6FB7FF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "spidermonkey",
+   "name": "SPIDERMONKEY",
+   "era": "AF",
+   "species": "Arachnichimp",
+   "planet": "Aranhaschimmia",
+   "powers": [
+    "Web slinging",
+    "Wall crawling",
+    "Agility"
+   ],
+   "weakness": "Light build",
+   "stats": [
+    4,
+    8,
+    4,
+    3
+   ],
+   "fx": [
+    "web",
+    "#5A6CFF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "goop",
+   "name": "GOOP",
+   "era": "AF",
+   "species": "Polymorph",
+   "planet": "Viscosia",
+   "powers": [
+    "Shapeshifting slime",
+    "Acid",
+    "Anti-gravity disc"
+   ],
+   "weakness": "Loses the disc",
+   "stats": [
+    4,
+    5,
+    4,
+    7
+   ],
+   "fx": [
+    "goo",
+    "#9BFF3A",
+    "#E4FF9A"
+   ]
+  },
+  {
+   "slug": "alien-x",
+   "name": "ALIEN X",
+   "era": "AF",
+   "species": "Celestialsapien",
+   "planet": "Forge of Creation",
+   "powers": [
+    "Reality warping",
+    "Omnipotence",
+    "Time & space"
+   ],
+   "weakness": "Needs Bellicus & Serena to agree",
+   "stats": [
+    10,
+    10,
+    10,
+    10
+   ],
+   "fx": [
+    "cosmic",
+    "#FFFFFF",
+    "#8A6CFF"
+   ]
+  },
+  {
+   "slug": "lodestar",
+   "name": "LODESTAR",
+   "era": "AF",
+   "species": "Biosovortian",
+   "planet": "Magnetar",
+   "powers": [
+    "Magnetism",
+    "Metal control",
+    "Detachable head"
+   ],
+   "weakness": "Non-metal foes",
+   "stats": [
+    6,
+    4,
+    5,
+    6
+   ],
+   "fx": [
+    "magnet",
+    "#FFD24A",
+    "#3A3A3A"
+   ]
+  },
+  {
+   "slug": "rath",
+   "name": "RATH",
+   "era": "AF",
+   "species": "Appoplexian",
+   "planet": "Appoplexia",
+   "powers": [
+    "Brute strength",
+    "Arm claws",
+    "Wrestling"
+   ],
+   "weakness": "Hot temper",
+   "stats": [
+    9,
+    6,
+    2,
+    7
+   ],
+   "fx": [
+    "feral",
+    "#FF7A2E",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "nanomech",
+   "name": "NANOMECH",
+   "era": "AF",
+   "species": "Nanochip",
+   "planet": "Nanochip Hive",
+   "powers": [
+    "Microscopic size",
+    "Bio-electric blasts",
+    "Flight"
+   ],
+   "weakness": "Easily swatted",
+   "stats": [
+    1,
+    7,
+    6,
+    2
+   ],
+   "fx": [
+    "shrink",
+    "#7DFF8A",
+    "#4AA8FF"
+   ]
+  },
+  {
+   "slug": "water-hazard",
+   "name": "WATER HAZARD",
+   "era": "UA",
+   "species": "Orishan",
+   "planet": "Orisha",
+   "powers": [
+    "Water cannons",
+    "Exoskeleton",
+    "Hydrokinesis"
+   ],
+   "weakness": "Runs dry",
+   "stats": [
+    7,
+    4,
+    4,
+    8
+   ],
+   "fx": [
+    "water",
+    "#3FA0FF",
+    "#7A1020"
+   ]
+  },
+  {
+   "slug": "ampfibian",
+   "name": "AMPFIBIAN",
+   "era": "UA",
+   "species": "Amperi",
+   "planet": "Unknown",
+   "powers": [
+    "Electricity",
+    "Intangibility",
+    "Underwater flight"
+   ],
+   "weakness": "Grounding",
+   "stats": [
+    4,
+    7,
+    5,
+    4
+   ],
+   "fx": [
+    "electric",
+    "#6FE7FF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "armodrillo",
+   "name": "ARMODRILLO",
+   "era": "UA",
+   "species": "Talpaedan",
+   "planet": "Unknown",
+   "powers": [
+    "Jackhammer arms",
+    "Tunneling",
+    "Earthquakes"
+   ],
+   "weakness": "Slow",
+   "stats": [
+    9,
+    3,
+    3,
+    8
+   ],
+   "fx": [
+    "pound",
+    "#FFE24A",
+    "#6B5A3A",
+    "cracks"
+   ]
+  },
+  {
+   "slug": "terraspin",
+   "name": "TERRASPIN",
+   "era": "UA",
+   "species": "Geochelone Aerio",
+   "planet": "Unknown",
+   "powers": [
+    "Wind blasts",
+    "Shell spin",
+    "Gliding"
+   ],
+   "weakness": "Flipped over",
+   "stats": [
+    5,
+    6,
+    4,
+    8
+   ],
+   "fx": [
+    "wind",
+    "#CDE88A",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "nrg",
+   "name": "NRG",
+   "era": "UA",
+   "species": "Prypiatosian-B",
+   "planet": "Prypiatos",
+   "powers": [
+    "Radiation",
+    "Heat beams",
+    "Containment suit"
+   ],
+   "weakness": "Suit breach",
+   "stats": [
+    8,
+    3,
+    5,
+    9
+   ],
+   "fx": [
+    "radiation",
+    "#FF6A2E",
+    "#FFE24A"
+   ]
+  },
+  {
+   "slug": "fasttrack",
+   "name": "FASTTRACK",
+   "era": "UA",
+   "species": "Citrakayah",
+   "planet": "Unknown",
+   "powers": [
+    "Super speed",
+    "Strength",
+    "Endurance"
+   ],
+   "weakness": "Tight corners",
+   "stats": [
+    6,
+    9,
+    4,
+    5
+   ],
+   "fx": [
+    "speed",
+    "#3F7BFF",
+    "#9FD0FF"
+   ]
+  },
+  {
+   "slug": "chamalien",
+   "name": "CHAMALIEN",
+   "era": "UA",
+   "species": "Merlinisapien",
+   "planet": "Unknown",
+   "powers": [
+    "Invisibility",
+    "Stinger tail",
+    "Wall crawling"
+   ],
+   "weakness": "Thermal sight",
+   "stats": [
+    4,
+    6,
+    5,
+    4
+   ],
+   "fx": [
+    "invisible",
+    "#B9A6E0",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "clockwork",
+   "name": "CLOCKWORK",
+   "era": "UA",
+   "species": "Chronosapien",
+   "planet": "Unknown",
+   "powers": [
+    "Time rays",
+    "Rewind",
+    "Glimpse the future"
+   ],
+   "weakness": "Slow, heavy body",
+   "stats": [
+    5,
+    2,
+    8,
+    7
+   ],
+   "fx": [
+    "time",
+    "#F2B23A",
+    "#6B4A1A"
+   ]
+  },
+  {
+   "slug": "jury-rigg",
+   "name": "JURY RIGG",
+   "era": "UA",
+   "species": "Planchaküle",
+   "planet": "Unknown",
+   "powers": [
+    "Dismantle machines",
+    "Rebuild anything",
+    "Hyperactive"
+   ],
+   "weakness": "Can't stop breaking things",
+   "stats": [
+    3,
+    7,
+    6,
+    3
+   ],
+   "fx": [
+    "circuit",
+    "#FF4A6A",
+    "#7DFF4A"
+   ]
+  },
+  {
+   "slug": "eatle",
+   "name": "EATLE",
+   "era": "UA",
+   "species": "Oryctini",
+   "planet": "Unknown",
+   "powers": [
+    "Eats anything",
+    "Horn lasers",
+    "Armored shell"
+   ],
+   "weakness": "Always hungry",
+   "stats": [
+    8,
+    3,
+    3,
+    8
+   ],
+   "fx": [
+    "pound",
+    "#9AA0B8",
+    "#3A3A44",
+    "cracks"
+   ]
+  },
+  {
+   "slug": "ultimate-humungousaur",
+   "name": "ULT. HUMUNGOUSAUR",
+   "era": "ULTIMATE",
+   "species": "Evolved Vaxasaurian",
+   "planet": "Ultimatrix",
+   "powers": [
+    "Bone missiles",
+    "Titan strength",
+    "Spiked armor"
+   ],
+   "weakness": "Evolution strain",
+   "stats": [
+    10,
+    4,
+    4,
+    10
+   ],
+   "fx": [
+    "grow",
+    "#3FA03F",
+    "#1A5A1A"
+   ]
+  },
+  {
+   "slug": "ultimate-swampfire",
+   "name": "ULT. SWAMPFIRE",
+   "era": "ULTIMATE",
+   "species": "Evolved Methanosian",
+   "planet": "Ultimatrix",
+   "powers": [
+    "Blue fire",
+    "Explosive seeds",
+    "Regeneration"
+   ],
+   "weakness": "Freezing cold",
+   "stats": [
+    8,
+    5,
+    4,
+    9
+   ],
+   "fx": [
+    "fire",
+    "#2E7BFF",
+    "#A8E6FF"
+   ]
+  },
+  {
+   "slug": "ultimate-big-chill",
+   "name": "ULT. BIG CHILL",
+   "era": "ULTIMATE",
+   "species": "Evolved Necrofriggian",
+   "planet": "Ultimatrix",
+   "powers": [
+    "Cold fire",
+    "Intangibility",
+    "Flight"
+   ],
+   "weakness": "Extreme heat",
+   "stats": [
+    6,
+    8,
+    5,
+    7
+   ],
+   "fx": [
+    "fire",
+    "#2EC0FF",
+    "#E6FBFF"
+   ]
+  },
+  {
+   "slug": "ultimate-echo-echo",
+   "name": "ULT. ECHO ECHO",
+   "era": "ULTIMATE",
+   "species": "Evolved Sonorosian",
+   "planet": "Ultimatrix",
+   "powers": [
+    "Sonic discs",
+    "Sound cannons",
+    "Flight"
+   ],
+   "weakness": "Disc control",
+   "stats": [
+    5,
+    6,
+    6,
+    5
+   ],
+   "fx": [
+    "sonic",
+    "#2E9BFF",
+    "#FFFFFF"
+   ]
+  },
+  {
+   "slug": "ultimate-spidermonkey",
+   "name": "ULT. SPIDERMONKEY",
+   "era": "ULTIMATE",
+   "species": "Evolved Arachnichimp",
+   "planet": "Ultimatrix",
+   "powers": [
+    "Giant webs",
+    "Super strength",
+    "Six legs"
+   ],
+   "weakness": "Bulky",
+   "stats": [
+    8,
+    7,
+    4,
+    6
+   ],
+   "fx": [
+    "web",
+    "#6A4AFF",
+    "#FFFFFF"
+   ]
+  }
+ ]
 }

@@ -219,11 +219,9 @@ The face has to know the app's state. Plan:
    - Timeout revert by exact alarm works, and tapping the face opens the app.
    - Gotchas: complication drawing is clipped to the slot's *bounding shape*, so the slot spans the whole face and the whole face is the tap target. The fallback provider must be a supported type, so it's battery, filtered out by `RANGED_VALUE_MAX == 13`. Heart rate tap-through is lost in exchange.
 4. ✅ **App v1 (v0.1.0)**: hologram selector over a 50-alien roster (OS, AF, UA, Ultimates) with real Alien Force-era art, dossier, transform burst, alien timer, timeout, hold to revert, haptics. Released as v0.1.0. The minimal face redesign and the powered-down AOD shipped with it.
-4b. **Next: alien-specific transformation animations** (research + 10 samples for review)
-5. **Alien tools**: wire up shortcuts (deferred: the dossier shows each alien's era for now)
-6. **Bio-scan**: live HR, ECG trace, zones
-7. **Tile + DNA Codex + unlock rules**
-8. **Polish**: sound, transition timing, battery profiling (target: < 3% extra drain/day)
+5. ✅ **v0.2.0**: transformations for all 50 aliens (27 effect families), timeout + recharge, sound (Sound mode only), settings menu, battery diagnostics, and a smoothness pass.
+6. **v0.3.0 (next)**: **Bio-scan** (live heart rate, ECG trace, alien-named zones) and the **DNA Codex** (unlock aliens through daily activity; Master Control unlocks everyone).
+7. Dropped: Omnitrix tile, aliens-as-watch-tools.
 
 ---
 

@@ -8,6 +8,7 @@ generated, gitignored assets:
               holo  256 px hologram plate: contrast-boosted luminance, alpha kept
                     (the app only multiplies it by the theme colour: cheap on the GPU)
               glow  256 px pre-blurred white silhouette (no runtime blur)
+              full  320 px full-colour art for the transformation reveal
               icon   72 px white silhouette for the bezel carousel
   face      android/watchface/src/generated/res/drawable-nodpi/alien_<n>.png
               52 px white silhouette, tinted on the face
@@ -28,7 +29,7 @@ ART = ROOT / "art/aliens"
 APP_OUT = ROOT / "android/app/src/generated/assets/aliens"
 FACE_OUT = ROOT / "android/watchface/src/generated/res/drawable-nodpi"
 
-HOLO, ICON, FACE = 256, 72, 52
+HOLO, ICON, FACE = 256, 72, 52   # px
 
 
 def fallback(size=512):
@@ -71,7 +72,7 @@ def silhouette(img):
 
 
 def main():
-    for sub in ("holo", "glow", "icon"):
+    for sub in ("holo", "glow", "icon", "full"):
         (APP_OUT / sub).mkdir(parents=True, exist_ok=True)
     FACE_OUT.mkdir(parents=True, exist_ok=True)
     missing = []
@@ -87,6 +88,7 @@ def main():
         hologram_plate(holo).save(APP_OUT / "holo" / f"{slug}.png", optimize=True)
         glow = silhouette(holo).filter(ImageFilter.GaussianBlur(9))
         glow.save(APP_OUT / "glow" / f"{slug}.png", optimize=True)
+        fit(art, 320, pad=0.03).save(APP_OUT / "full" / f"{slug}.png", optimize=True)
         silhouette(fit(art, ICON, pad=0.04)).save(APP_OUT / "icon" / f"{slug}.png", optimize=True)
         silhouette(fit(art, FACE, pad=0.02)).save(FACE_OUT / f"alien_{n}.png", optimize=True)
 

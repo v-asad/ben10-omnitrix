@@ -6,6 +6,7 @@
     <!-- Alien time must end on the dot, like the show's timeout. -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".OmnitrixApplication"
@@ -50,5 +51,19 @@
         <receiver
             android:name=".TimeoutReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".Diagnostics$SampleReceiver"
+            android:exported="false" />
+
+        <!-- Keeps the face's tap target alive across app updates and reboots. -->
+        <receiver
+            android:name=".RefreshReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

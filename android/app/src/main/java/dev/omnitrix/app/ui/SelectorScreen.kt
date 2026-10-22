@@ -1,8 +1,6 @@
 package dev.omnitrix.app.ui
 
-import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -53,7 +51,11 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.Energy
 import dev.omnitrix.app.Haptics
+import dev.omnitrix.app.Sounds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
@@ -81,11 +83,16 @@ private const val HOLO_SIZE = 196f
 fun SelectorScreen(
     energy: Energy,
     art: AlienArt,
+    fx: FxCache,
     initialAlien: Int,
+    /** Non-null while the Omnitrix is recharging after a timeout. */
+    rechargeText: String?,
     onSelectedChange: (Int) -> Unit,
     onTransform: (Int) -> Unit,
     onOpenDossier: (Int) -> Unit,
+    onOpenMenu: () -> Unit,
 ) {
+    val locked = energy.locked || rechargeText != null
     val context = LocalContext.current
     val view = LocalView.current
     val scope = rememberCoroutineScope()
@@ -96,7 +103,6 @@ fun SelectorScreen(
     var selected by remember { mutableIntStateOf(initialAlien) }
     val materialize = remember { Animatable(0f) }
     val shake = remember { Animatable(0f) }
-    val flash = remember { Animatable(0f) }
     var transforming by remember { mutableStateOf(false) }
 
     val loops = rememberInfiniteTransition(label = "selector")
@@ -104,13 +110,20 @@ fun SelectorScreen(
     val spin = loops.animateFloat(0f, 360f, infiniteRepeatable(tween(60_000, easing = LinearEasing)), label = "spin")
 
     LaunchedEffect(Unit) { materialize.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 260f)) }
-    LaunchedEffect(selected) { art.prefetch(selected) }
+    LaunchedEffect(selected) {
+        art.prefetch(selected)
+        // Once the carousel settles, prepare this alien's transformation in the background.
+        delay(220)
+        art.requestFull(selected)
+        withContext(Dispatchers.Default) { fx.warm(selected, energy) }
+    }
 
     fun settle(index: Int) {
         if (index == selected) return
         selected = index
         onSelectedChange(index)
-        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        Haptics.tick(view)
+        Sounds.play(context, Sounds.Cue.TICK)
         scope.launch {
             materialize.snapTo(0f)
             materialize.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 320f))
@@ -126,8 +139,9 @@ fun SelectorScreen(
 
     fun slam() {
         if (transforming) return
-        if (energy.locked) {
+        if (locked) {
             Haptics.denied(context)
+            Sounds.play(context, Sounds.Cue.DENIED)
             scope.launch {
                 repeat(3) { shake.animateTo(9f, tween(35)); shake.animateTo(-9f, tween(35)) }
                 shake.animateTo(0f, tween(35))
@@ -136,9 +150,9 @@ fun SelectorScreen(
         }
         transforming = true
         Haptics.transform(context)
+        Sounds.play(context, Sounds.Cue.SLAM)
         scope.launch {
-            materialize.animateTo(0f, tween(150))                             // collapse into the projector
-            flash.animateTo(1f, tween(560, easing = FastOutSlowInEasing))     // DNA burst
+            materialize.animateTo(0f, tween(150))     // collapse into the projector, then the transformation plays
             onTransform(selected)
         }
     }
@@ -191,6 +205,7 @@ fun SelectorScreen(
                             scope.launch { position.animateTo(target[0], spring(dampingRatio = 0.8f, stiffness = 380f)) }
                         }
                         moved && dy < -radius * 0.25f -> onOpenDossier(selected)
+                        moved && dy > radius * 0.25f -> onOpenMenu()
                     }
                 }
             },
@@ -213,15 +228,12 @@ fun SelectorScreen(
             measurer.measure("DNA %02d / %02d · %s".format(selected + 1, count, alien.era),
                 orbitron(density, scale, 10f, FontWeight.Bold, Color(0xFF6F9A66), 1.5f))
         }
-        val cta = remember(scale, energy) {
-            measurer.measure(if (energy.locked) "NO ENERGY · CHARGE" else "TAP TO TRANSFORM",
+        val cta = remember(scale, energy, rechargeText) {
+            measurer.measure(rechargeText ?: if (energy.locked) "NO ENERGY · CHARGE" else "TAP TO TRANSFORM",
                 orbitron(density, scale, 10f, FontWeight.Bold, main, 3f))
         }
         val statLabels = remember(scale) {
             Aliens.STAT_LABELS.map { measurer.measure(it, orbitron(density, scale, 8f, FontWeight.Bold, Color(0xFF6F9A66), 1f)) }
-        }
-        val burst = remember(selected, scale) {
-            measurer.fitted("${alien.name}!", { orbitron(density, scale, it, FontWeight.Black, Color.Black, 2f) }, 30f, 400f, scale)
         }
         val kit = remember(energy) { SelectorKit(energy) }
 
@@ -231,12 +243,13 @@ fun SelectorScreen(
                 .graphicsLayer { translationX = shake.value * scale },
         ) {
             art.version.intValue   // redraw when artwork finishes loading
+            fx.get(selected, energy)?.warmUp(this)   // 1 px pre-compile of the transformation shader
             val pos = position.value
             val t = scan.value
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
                 drawBezel(kit, art, pos, count)
                 drawCore(kit, spin.value)
-                drawHologram(kit, art, selected, materialize.value, t, energy.locked)
+                drawHologram(kit, art, selected, materialize.value, t, locked)
                 drawStats(kit, alien.stats)
             }
             drawCentered(index, 72f, scale)
@@ -248,14 +261,6 @@ fun SelectorScreen(
             }
             drawCentered(cta, 382f, scale, alpha = 0.55f + 0.45f * abs(sin(t * PI.toFloat())))
 
-            val f = flash.value
-            if (f > 0f) {
-                withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                    drawCircle(kit.burstBrush, radius = 40f + f * 420f, center = CENTER)
-                    drawRect(main, size = Size(VIRTUAL, VIRTUAL), alpha = (f - 0.35f).coerceIn(0f, 1f))
-                }
-                if (f > 0.45f) drawCentered(burst, 222f, scale, alpha = ((f - 0.45f) * 3f).coerceAtMost(1f))
-            }
         }
     }
 }
@@ -277,9 +282,6 @@ private class SelectorKit(val energy: Energy) {
         startY = 0f, endY = 4f, tileMode = TileMode.Repeated,
     )
     val edgeFade = Brush.radialGradient(0.62f to Color.Transparent, 1f to Color.Black, center = HOLO_CENTER, radius = HOLO_RADIUS)
-    val burstBrush = Brush.radialGradient(
-        0f to Color.White, 0.45f to energy.bright, 0.8f to energy.main, 1f to Color.Transparent, center = CENTER, radius = 460f,
-    )
     val ticks = Path().apply {
         for (i in 0 until 60) {
             val a = polar(if (i % 5 == 0) 186f else 189f, i * 6f)

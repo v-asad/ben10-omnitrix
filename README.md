@@ -3,7 +3,9 @@
 A Ben 10 Omnitrix experience for the **Samsung Galaxy Watch8 (44mm)**. It's more than a skin: a minimal Omnitrix watch face plus a companion Wear OS app. Tap the face and the dial pops up. Spin the bezel through **50 aliens** projected as holograms, slam to transform, and the face turns into the white alien badge until your time runs out.
 
 - **Watch face** (Watch Face Format v4): a big hourglass core, the time printed small in the top bulb, battery-driven energy states, and a powered-down always-on mode.
-- **Omnitrix app**: a hologram selector with a DNA carousel on the bezel, a dossier for each alien, the transform flash with haptics, a live countdown, hold to revert, and the timeout buzz.
+- **Omnitrix app**: a hologram selector with a DNA carousel on the bezel, a dossier for each alien (swipe up), an alien-specific transformation sequence for every alien, a live countdown, hold to revert, then the timeout beeps and a red recharge.
+- **Sound & haptics**: original Omnitrix cues that only play when the watch is in Sound mode and follow its volume, plus haptic patterns for every beat.
+- **Omnitrix menu** (swipe down): settings (alien time, recharge, animations, haptics, sound) and battery diagnostics.
 - **Roster**: all 22 original-series aliens, the Alien Force line-up, the best of Ultimate Alien and five Ultimate forms ([data/aliens.json](data/aliens.json)).
 
 | Battery | Face |
@@ -57,6 +59,15 @@ tools/install_watch.sh --rebuild
 
 Validate against Google's schema with [wff-validator](https://github.com/google/watchface/releases):
 `java -jar wff-validator.jar 4 android/watchface/src/main/res/raw/watchface.xml`
+
+### Battery check (a day of wear)
+
+```sh
+python3 tools/battery_report.py start    # morning, watch connected: resets Android's battery stats + the app's log
+python3 tools/battery_report.py report   # evening: drain per hour, Omnitrix usage, per-app power estimates
+```
+
+Reports are saved to the gitignored `diagnostics/` folder.
 
 See [PLAN.md](PLAN.md) for the full UX, interaction model, architecture and milestones, [CHANGELOG.md](CHANGELOG.md) for release notes, and [docs/RELEASING.md](docs/RELEASING.md) for the branch and release workflow.
 

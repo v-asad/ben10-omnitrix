@@ -209,7 +209,7 @@ def alien_slot(boxes):
     """Hidden full-face slot fed by the Omnitrix app.
 
     value 0 = human (draws nothing), value n = alien n-1: the slot repaints the face as the
-    white alien badge. Drawing is clipped to the bounding shape, so the slot spans the whole
+    white alien badge; value count+1 = recharging after a timeout (red face + countdown). Drawing is clipped to the bounding shape, so the slot spans the whole
     face and any tap opens the app (WFF can't launch apps directly).
     """
     c = COLORS["alien"]
@@ -234,6 +234,15 @@ def alien_slot(boxes):
         image("base_alien", boxes),
         time_text(c["ink"]), name(c["ink"]), emblems(c["ink"]), countdown(c["ink"]),
     ])
+    r = COLORS["red"]
+    recharge = "\n".join([
+        image("base_red", boxes),
+        *[blink(image(f"slit_{k}", boxes, f'tintColor="{r["slit"]}"')) for k in range(4)],
+        time_text(r["ink"]),
+        text(150, 157, 180, 16, "RECHARGING", 10, r["ink"], family="orbitron_bold", spacing=0.2),
+        # sits above the activation button printed in the bottom bulb
+        text(180, 282, 120, 26, '%s<Parameter expression="[COMPLICATION.TEXT]"/>', 19, r["ink"]),
+    ])
     ambient = "\n".join([
         '<PartDraw x="0" y="0" width="480" height="480"><Ellipse x="0" y="0" width="480" height="480"><Fill color="#FF000000"/></Ellipse></PartDraw>',
         image("ambient_alien", boxes),
@@ -249,7 +258,10 @@ def alien_slot(boxes):
       <BoundingBox x="0" y="0" width="480" height="480"/>
       <Complication type="RANGED_VALUE">
         <Condition>
-          <Expressions><Expression name="alien">{value} &gt; 0 &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == {ALIEN_COUNT}</Expression></Expressions>
+          <Expressions>
+            <Expression name="alien">{value} &gt; 0 &amp;&amp; {value} &lt;= {ALIEN_COUNT} &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == {ALIEN_COUNT + 1}</Expression>
+            <Expression name="recharging">{value} == {ALIEN_COUNT + 1} &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == {ALIEN_COUNT + 1}</Expression>
+          </Expressions>
           <Compare expression="alien">
             <Group name="alien_form" x="0" y="0" width="480" height="480">
               <Variant mode="AMBIENT" target="alpha" value="0"/>
@@ -258,6 +270,13 @@ def alien_slot(boxes):
             <Group name="alien_aod" x="0" y="0" width="480" height="480" alpha="0">
               <Variant mode="AMBIENT" target="alpha" value="255"/>
 {ambient}
+            </Group>
+          </Compare>
+          <Compare expression="recharging">
+            <!-- After a timeout: the red recharge face with the time left until it's ready. -->
+            <Group name="recharge_form" x="0" y="0" width="480" height="480">
+              <Variant mode="AMBIENT" target="alpha" value="0"/>
+{recharge}
             </Group>
           </Compare>
         </Condition>

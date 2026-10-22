@@ -1,7 +1,9 @@
 package dev.omnitrix.app
 
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,63 +19,124 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import dev.omnitrix.app.ui.AlienFormScreen
+import dev.omnitrix.app.ui.BatteryScreen
 import dev.omnitrix.app.ui.DossierScreen
+import dev.omnitrix.app.ui.FxCache
+import dev.omnitrix.app.ui.MenuScreen
 import dev.omnitrix.app.ui.SelectorScreen
+import dev.omnitrix.app.ui.SettingsScreen
+import dev.omnitrix.app.ui.TRANSFORM_MS
+import dev.omnitrix.app.ui.TRANSFORM_QUICK_MS
+import dev.omnitrix.app.ui.TransformationScreen
 import dev.omnitrix.app.ui.rememberAlienArt
+import kotlinx.coroutines.delay
 
 /** Tapping the Omnitrix face lands here: the dial pops up. */
 class MainActivity : ComponentActivity() {
+    private var openedAt = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Debug hook: adb shell am start -n dev.omnitrix.app/.MainActivity --ei transform <alien> [--ei seconds <n>]
         intent.getIntExtra(EXTRA_TRANSFORM, -1).takeIf { it in Aliens.all.indices }?.let { alien ->
             Transformer.transform(this, alien, intent.getIntExtra(EXTRA_SECONDS, 60) * 1000L)
         }
-        setContent { OmnitrixApp(onDone = ::finish) }
+        // Debug hook: --es preview <slug> plays that alien's transformation without transforming.
+        val preview = intent.getStringExtra(EXTRA_PREVIEW)?.let { slug -> Aliens.all.indexOfFirst { it.slug == slug } }?.takeIf { it >= 0 }
+        // Cheap insurance: make sure the face holds a live tap target for next time.
+        Transformer.refreshFace(this)
+        Sounds.preload(this)
+        Diagnostics.schedule(this)
+        setContent { OmnitrixApp(preview = preview, onDone = ::finish) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        openedAt = SystemClock.elapsedRealtime()
+        Diagnostics.log(this, "app_open")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Diagnostics.log(this, "app_close", "ms=${SystemClock.elapsedRealtime() - openedAt}")
     }
 
     private companion object {
         const val EXTRA_TRANSFORM = "transform"
         const val EXTRA_SECONDS = "seconds"
+        const val EXTRA_PREVIEW = "preview"
     }
 }
 
+private enum class Screen { SELECTOR, DOSSIER, MENU, SETTINGS, BATTERY }
+
 @Composable
-private fun OmnitrixApp(onDone: () -> Unit) {
+private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
     val context = LocalContext.current
     val state = remember { OmnitrixState(context) }
-    val energy = remember { Energy.read(context) }
+    val settings = remember { Settings(context) }
+    val batteryEnergy = remember { Energy.read(context) }
     var transformation by remember { mutableStateOf(state.current()) }
+    var cooldownUntil by remember { mutableStateOf(state.cooldownUntil) }
     var cursor by remember { mutableIntStateOf(state.lastAlien) }
-    var dossier by remember { mutableStateOf(false) }
+    var screen by remember { mutableStateOf(Screen.SELECTOR) }
+    var transformingInto by remember { mutableStateOf(preview) }
     val art = rememberAlienArt()
+    val fx = remember { FxCache() }
 
-    LaunchedEffect(Unit) { if (transformation == null) Haptics.dialUp(context) }
+    // While recharging, the Omnitrix shows red and won't transform; unlock when it finishes.
+    val recharging = cooldownUntil > System.currentTimeMillis()
+    val energy = if (recharging) Energy.RECHARGE else batteryEnergy
+    LaunchedEffect(cooldownUntil) {
+        val wait = cooldownUntil - System.currentTimeMillis()
+        if (wait > 0) { delay(wait); cooldownUntil = 0 }
+    }
+    LaunchedEffect(Unit) {
+        if (transformation == null && preview == null) {
+            Haptics.dialUp(context)
+            Sounds.play(context, Sounds.Cue.DIAL_UP)
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val current = transformation
+        val into = transformingInto
         when {
+            into != null -> TransformationScreen(into, energy, art, fx,
+                if (settings.animations == Settings.Animations.QUICK) TRANSFORM_QUICK_MS else TRANSFORM_MS, onDone = onDone)
             current != null -> AlienFormScreen(
                 transformation = current,
                 art = art,
                 onRevert = {
                     Transformer.revert(context)
                     Haptics.revert(context)
+                    Sounds.play(context, Sounds.Cue.REVERT)
                     onDone()
                 },
-                onExpired = { transformation = null },
+                onExpired = { transformation = null; cooldownUntil = state.cooldownUntil },
             )
-            dossier -> DossierScreen(cursor, energy, art, onClose = { dossier = false })
+            screen == Screen.DOSSIER -> {
+                BackHandler { screen = Screen.SELECTOR }
+                DossierScreen(cursor, energy, art, onClose = { screen = Screen.SELECTOR })
+            }
+            screen == Screen.MENU -> MenuScreen(energy, onSettings = { screen = Screen.SETTINGS }, onBattery = { screen = Screen.BATTERY },
+                onBack = { screen = Screen.SELECTOR })
+            screen == Screen.SETTINGS -> SettingsScreen(energy, onBack = { screen = Screen.MENU })
+            screen == Screen.BATTERY -> BatteryScreen(energy, onBack = { screen = Screen.MENU })
             else -> SelectorScreen(
                 energy = energy,
                 art = art,
+                fx = fx,
                 initialAlien = cursor,
+                rechargeText = if (recharging) "RECHARGING" else null,
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->
-                    Transformer.transform(context, alien, energy.alienTimeMillis)
-                    onDone()
+                    // Transform now so the face is already white when the sequence ends.
+                    Transformer.transform(context, alien, settings.alienTimeMillis(batteryEnergy))
+                    if (settings.animations == Settings.Animations.OFF) onDone() else transformingInto = alien
                 },
-                onOpenDossier = { cursor = it; dossier = true },
+                onOpenDossier = { cursor = it; screen = Screen.DOSSIER },
+                onOpenMenu = { screen = Screen.MENU },
             )
         }
     }

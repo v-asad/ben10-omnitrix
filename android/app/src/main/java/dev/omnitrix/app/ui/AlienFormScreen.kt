@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -46,15 +45,16 @@ fun AlienFormScreen(transformation: Transformation, art: AlienArt, onRevert: () 
     val scope = rememberCoroutineScope()
     val hold = remember { Animatable(0f) }
 
-    // Ticks once per second, aligned to the wall clock.
-    val now by produceState(System.currentTimeMillis()) {
-        while (true) {
+    // Ticks once per second, aligned to the wall clock. Read only inside the draw lambda, so a
+    // tick is a redraw, never a recomposition.
+    val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(transformation) {
+        while (now.longValue < transformation.endsAtMillis) {
             delay(1000 - System.currentTimeMillis() % 1000)
-            value = System.currentTimeMillis()
+            now.longValue = System.currentTimeMillis()
         }
+        onExpired()
     }
-    val remainingMs = (transformation.endsAtMillis - now).coerceAtLeast(0)
-    LaunchedEffect(remainingMs == 0L) { if (remainingMs == 0L) onExpired() }
 
     BoxWithConstraints(
         Modifier
@@ -78,17 +78,15 @@ fun AlienFormScreen(transformation: Transformation, art: AlienArt, onRevert: () 
         val name = remember(scale) {
             measurer.fitted(alien.name, { orbitron(density, scale, it, FontWeight.Black, INK, 1.2f) }, 15f, 112f, scale)
         }
-        val secondsLeft = remainingMs / 1000
-        val countdown = remember(secondsLeft, scale) {
-            measurer.measure("%02d:%02d".format(secondsLeft / 60, secondsLeft % 60), orbitron(density, scale, 32f, FontWeight.Black, INK))
-        }
+        val digits = remember(scale) { DigitAtlas(measurer, orbitron(density, scale, 32f, FontWeight.Black, INK)) }
+        val clock = remember { CharArray(5) }
         val hint = remember(scale) {
             measurer.measure("HOLD TO REVERT", orbitron(density, scale, 9f, FontWeight.Bold, INK.copy(alpha = 0.7f), 2.5f))
         }
         val kit = remember { BadgeKit() }
-        val progress = remainingMs.toFloat() / transformation.totalMillis.coerceAtLeast(1)
-
         Canvas(Modifier.fillMaxSize()) {
+            val remainingMs = (transformation.endsAtMillis - now.longValue).coerceAtLeast(0)
+            val progress = remainingMs.toFloat() / transformation.totalMillis.coerceAtLeast(1)
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
                 // white chrome bezel + countdown arc
                 drawCircle(kit.bezel, radius = 226f, center = CENTER, style = Stroke(26f))
@@ -116,7 +114,10 @@ fun AlienFormScreen(transformation: Transformation, art: AlienArt, onRevert: () 
             fun centered(layout: androidx.compose.ui.text.TextLayoutResult, y: Float) =
                 drawText(layout, topLeft = Offset(240f * scale - layout.size.width / 2f, y * scale - layout.size.height / 2f))
             centered(name, 162f)
-            centered(countdown, 340f)
+            val secs = (remainingMs / 1000).toInt()
+            clock[0] = '0' + secs / 600 % 10; clock[1] = '0' + secs / 60 % 10; clock[2] = ':'
+            clock[3] = '0' + secs % 60 / 10; clock[4] = '0' + secs % 10
+            digits.draw(this, String(clock), 240f * scale, 340f * scale)
             centered(hint, 378f)
         }
     }

@@ -19,41 +19,43 @@ import java.time.Instant
 
 /**
  * Tells the Omnitrix face what state you're in, encoded for Watch Face Format expressions:
- *   value = 0 (human) or alien index + 1
+ *   value = 0 (human), alien index + 1, or count + 1 while recharging
  *   text  = live countdown, rendered by the system so it ticks without app wake-ups
  *   title = alien name
  * Tapping the slot (the core) opens the selector.
  */
 class OmnitrixStateService : SuspendingComplicationDataSourceService() {
 
-    override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData =
-        build(OmnitrixState(this).current())
+    override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
+        val state = OmnitrixState(this)
+        return build(state.current(), state.cooldownUntil.takeIf { it > System.currentTimeMillis() })
+    }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData =
-        System.currentTimeMillis().let { now -> build(Transformation(alien = 0, startedAtMillis = now, endsAtMillis = now + 10 * 60_000)) }
+        System.currentTimeMillis().let { now -> build(Transformation(alien = 0, startedAtMillis = now, endsAtMillis = now + 10 * 60_000), null) }
 
-    private fun build(transformation: Transformation?): ComplicationData {
-        val name = transformation?.let { Aliens.all[it.alien].name } ?: "HUMAN"
-        val text = if (transformation == null) {
-            PlainComplicationText.Builder("READY").build()
-        } else {
-            TimeDifferenceComplicationText.Builder(
-                TimeDifferenceStyle.STOPWATCH,
-                CountDownTimeReference(Instant.ofEpochMilli(transformation.endsAtMillis)),
-            ).build()
+    private fun build(transformation: Transformation?, cooldownUntil: Long?): ComplicationData {
+        val count = Aliens.size
+        // value: 0 human · 1..count alien n-1 · count+1 recharging (max = count+1 so the face can tell it's us)
+        val (value, title, endsAt) = when {
+            transformation != null -> Triple(transformation.alien + 1, Aliens.all[transformation.alien].name, transformation.endsAtMillis)
+            cooldownUntil != null -> Triple(count + 1, "RECHARGING", cooldownUntil)
+            else -> Triple(0, "HUMAN", null)
         }
+        val text = if (endsAt == null) PlainComplicationText.Builder("READY").build()
+        else TimeDifferenceComplicationText.Builder(TimeDifferenceStyle.STOPWATCH, CountDownTimeReference(Instant.ofEpochMilli(endsAt))).build()
         val tap = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         return RangedValueComplicationData.Builder(
-            value = (transformation?.alien?.plus(1) ?: 0).toFloat(),
+            value = value.toFloat(),
             min = 0f,
-            max = Aliens.size.toFloat(),
-            contentDescription = PlainComplicationText.Builder("Omnitrix: $name").build(),
+            max = (count + 1).toFloat(),
+            contentDescription = PlainComplicationText.Builder("Omnitrix: $title").build(),
         )
             .setText(text)
-            .setTitle(PlainComplicationText.Builder(name).build())
+            .setTitle(PlainComplicationText.Builder(title).build())
             .setTapAction(tap)
             .build()
     }

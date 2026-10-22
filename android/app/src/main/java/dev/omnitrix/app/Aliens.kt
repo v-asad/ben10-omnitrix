@@ -1,7 +1,11 @@
 package dev.omnitrix.app
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import org.json.JSONObject
+
+/** Transformation effect: family (fire, ice, electric…), two colours and an optional variant. */
+class FxSpec(val family: String, val primary: Color, val secondary: Color, val variant: String?)
 
 class Alien(
     val slug: String,
@@ -14,6 +18,7 @@ class Alien(
     val weakness: String,
     /** Fan ratings out of 10: STR, SPD, INT, DEF. */
     val stats: IntArray,
+    val fx: FxSpec,
 ) {
     val eraLabel get() = when (era) {
         "OS" -> "ORIGINAL SERIES"
@@ -42,6 +47,7 @@ object Aliens {
             val o = array.getJSONObject(i)
             val powers = o.getJSONArray("powers")
             val stats = o.getJSONArray("stats")
+            val fx = o.getJSONArray("fx")
             Alien(
                 slug = o.getString("slug"),
                 name = o.getString("name"),
@@ -51,6 +57,12 @@ object Aliens {
                 powers = List(powers.length()) { powers.getString(it) },
                 weakness = o.getString("weakness"),
                 stats = IntArray(stats.length()) { stats.getInt(it) },
+                fx = FxSpec(
+                    family = fx.getString(0),
+                    primary = Color(android.graphics.Color.parseColor(fx.getString(1))),
+                    secondary = Color(android.graphics.Color.parseColor(fx.getString(2))),
+                    variant = if (fx.length() > 3) fx.getString(3) else null,
+                ),
             )
         }
     }

@@ -35,6 +35,7 @@
   .screen { width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden; background:#000;
             box-shadow: inset 0 0 0 2px #000, 0 0 0 3px #26292d; }
   .screen svg { display:block; width:100%; height:100%; }
+  #live { touch-action:none; cursor:pointer; user-select:none; }
 
   /* ---------- prototype ---------- */
   .proto { display:grid; grid-template-columns: 460px 1fr; gap:48px; padding:20px 48px; align-items:center; }
@@ -123,7 +124,7 @@
         <button id="bHome">HOME</button>
         <button id="bRevert">REVERT TO HUMAN</button>
       </div>
-      <p>Click the watch face to raise the dial. While it's up, scroll the mouse wheel (the watch's touch bezel) to cycle aliens, then click the centre to slam it. Swipe up (or <span class="kbd">↑</span>) for the alien's dossier. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
+      <p>Click the watch face to raise the dial. While it's up, drag around the edge (the watch's touch bezel) or scroll the mouse wheel to spin through the aliens, then click the centre to slam it. Swipe up (or <span class="kbd">↑</span>) for the alien's dossier. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
     </div>
     <div class="panel">
       <h3>SOUND</h3>
@@ -620,7 +621,42 @@ function timeout() {
   flash('#ff2a1a', 'TIMED OUT', 900, () => { S.mode = 'home'; render(); });
 }
 
+// Touch bezel: drag around the edge and the carousel follows your finger, snapping
+// to the nearest alien on release. Vertical swipe in the middle opens/closes the dossier.
+let drag = null;
+const toFace = e => { const r = live.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 480, (e.clientY - r.top) / r.height * 480]; };
+const angleOf = (x, y) => Math.atan2(x - 240, 240 - y) * 180 / Math.PI;
+live.addEventListener('pointerdown', e => {
+  if (S.mode !== 'select' && S.mode !== 'dossier') return;
+  const [x, y] = toFace(e);
+  const ring = S.mode === 'select' && Math.hypot(x - 240, y - 240) > 160;
+  drag = { ring, x, y, a0: angleOf(x, y), rot0: S.ringRot, moved: false };
+  live.setPointerCapture(e.pointerId);
+});
+live.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const [x, y] = toFace(e);
+  if (Math.hypot(x - drag.x, y - drag.y) > 8) drag.moved = true;
+  if (!drag.ring || !drag.moved) return;
+  const delta = ((angleOf(x, y) - drag.a0 + 540) % 360) - 180;
+  drag.a0 = angleOf(x, y); drag.rot0 += delta;
+  S.ringRot = S.ringTarget = drag.rot0;
+  const k = ((Math.round(-S.ringRot / STEP) % ALIENS.length) + ALIENS.length) % ALIENS.length;
+  if (k !== S.alien) { S.alien = k; S.changedAt = performance.now(); sfx.click(); }
+  render();
+});
+live.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const [x, y] = toFace(e), d = drag; drag = null;
+  if (!d.moved) return;
+  S.suppressClick = true;
+  if (d.ring) { S.ringTarget = -Math.round(-S.ringRot / STEP) * STEP; return spinRing(); }
+  if (y - d.y < -40 && S.mode === 'select') openDossier();
+  else if (y - d.y > 40 && S.mode === 'dossier') { S.mode = 'select'; render(); }
+});
+
 live.addEventListener('click', e => {
+  if (S.suppressClick) { S.suppressClick = false; return; }
   if (S.mode === 'alien' || S.mode === 'flash') return;
   if (S.mode === 'hr' || S.mode === 'aod') { S.mode = 'home'; return render(); }
   if (S.mode === 'dossier') { S.mode = 'select'; return render(); }

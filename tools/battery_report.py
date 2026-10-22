@@ -52,6 +52,18 @@ def uid_of(package):
     return f"u0a{uid - 10000}" if uid >= 10000 else str(uid)
 
 
+def uid_names():
+    """{'u0a172': 'com.example', '1000': 'android (system)', ...}"""
+    names = {"1000": "android system", "0": "kernel/root", "2000": "adb shell (testing)"}
+    for line in adb("shell", "cmd", "package", "list", "packages", "-U", check=False).splitlines():
+        m = re.match(r"package:(\S+) uid:(\d+)", line)
+        if m:
+            uid = int(m.group(2))
+            key = f"u0a{uid - 10000}" if uid >= 10000 else str(uid)
+            names.setdefault(key, m.group(1))
+    return names
+
+
 def power_estimates():
     """{uid_string: mAh} from batterystats' 'Estimated power use' section."""
     text = adb("shell", "dumpsys", "batterystats", "--charged", check=False)
@@ -122,8 +134,9 @@ def report():
             mah = estimates.get(uid, 0.0) if uid else 0.0
             share = f" ({mah / total:.1%} of drain)" if total else ""
             lines.append(f"- {label}: **{mah:.1f} mAh**{share}")
+        names = uid_names()
         top = sorted(estimates.items(), key=lambda kv: -kv[1])[:6]
-        lines += ["", "Top consumers: " + ", ".join(f"{k} {v:.0f} mAh" for k, v in top), ""]
+        lines += ["", "Top consumers:", *[f"- {names.get(k, k)}: {v:.0f} mAh" for k, v in top], ""]
 
     out_dir = ROOT / "diagnostics"
     out_dir.mkdir(exist_ok=True)

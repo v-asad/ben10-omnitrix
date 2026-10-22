@@ -73,6 +73,8 @@ const emblem = (a, x, y, size, color, extra='') =>
 const anim = (cls, period) => `class="${cls}" style="animation-delay:-${((performance.now()/1000) % period).toFixed(3)}s"`;
 // One-shot animation that started at t0 (ms); stays finished on later renders.
 const since = (cls, t0) => `class="${cls}" style="animation-delay:-${((performance.now() - t0)/1000).toFixed(3)}s"`;
+// Face core radius (the selector keeps its own 150 px geometry).
+const CORE_R = 176;
 const themeFor = b => b > 90 ? 'master' : b < 20 ? 'red' : 'green';
 
 function defs(t, id) {
@@ -87,25 +89,24 @@ function defs(t, id) {
       <stop offset="0" stop-color="${t.ringA}"/><stop offset=".5" stop-color="${t.ringB}"/><stop offset="1" stop-color="${t.ringA}"/>
     </linearGradient>
     <clipPath id="clip${id}"><circle cx="240" cy="240" r="150"/></clipPath>
+    <clipPath id="fclip${id}"><circle cx="240" cy="240" r="${CORE_R}"/></clipPath>
     <filter id="glow${id}" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="blur${id}"><feGaussianBlur stdDeviation="14"/></filter>
     <path id="arcB${id}" d="${arc(170, 120, 240).replace(/A/, 'A')}" />
-    <path id="arcBot${id}" d="M${polar(172,242)[0]} ${polar(172,242)[1]}A172 172 0 0 0 ${polar(172,118)[0]} ${polar(172,118)[1]}"/>
+    <path id="arcBot${id}" d="M${polar(190,236)[0]} ${polar(190,236)[1]}A190 190 0 0 0 ${polar(190,124)[0]} ${polar(190,124)[1]}"/>
     <path id="arcTop${id}" d="${arc(172, -62, 62)}"/>
   </defs>`;
 }
 
 // bezel: metal ring, 4 energy slits (one per battery quarter), seconds track
 function bezel(t, id, o) {
-  const lit = Math.ceil(o.battery / 25);
   let s = `<circle cx="240" cy="240" r="240" fill="#000"/>
     <circle cx="240" cy="240" r="226" fill="none" stroke="url(#ring${id})" stroke-width="26"/>
     <circle cx="240" cy="240" r="213" fill="none" stroke="#000" stroke-width="2" opacity=".7"/>`;
   [45,135,225,315].forEach((a,i) => {
-    // light order: bottom-left → top-left → top-right → bottom-right
-    const order = [2,3,0,1][i]; const on = order < lit;
+    const on = o.battery > 0;   // decorative energy lights, not a battery gauge
     s += `<g transform="rotate(${a} 240 240)">
       <rect x="230" y="2" width="20" height="24" rx="5" fill="#000"/>
       <rect x="233" y="5" width="14" height="18" rx="3" fill="${on ? t.slit : '#1a1d1b'}" ${on ? `filter="url(#glow${id})"` : ''} class="${on && o.theme==='red' ? 'blink' : ''}"/>
@@ -115,7 +116,7 @@ function bezel(t, id, o) {
   const sec = o.time.getSeconds();
   for (let i = 0; i < 60; i++) {
     const big = i % 5 === 0;
-    const [x0,y0] = polar(big ? 196 : 200, i*6), [x1,y1] = polar(207, i*6);
+    const [x0,y0] = polar(big ? 201 : 204, i*6), [x1,y1] = polar(210, i*6);
     const on = o.countdown == null ? i <= sec : i < Math.round(o.countdown*60);
     s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${on ? t.text : '#1f2620'}" stroke-width="${big?3:2}" stroke-linecap="round" opacity="${on?1:.9}"/>`;
   }
@@ -124,69 +125,65 @@ function bezel(t, id, o) {
 
 function hourglass(t, id, o) {
   return `
-    <circle cx="240" cy="240" r="188" fill="url(#plate${id})" stroke="#000" stroke-width="3"/>
-    ${[0,90,180,270].map(a=>`<rect x="236" y="56" width="8" height="18" rx="3" fill="#000" transform="rotate(${a} 240 240)" opacity=".8"/>`).join('')}
-    <circle cx="240" cy="240" r="160" fill="${t.glow}" opacity="${o.theme==='alien'?.35:.45}" filter="url(#blur${id})" ${o.theme==='red'?anim('breathe',3.2):''}/>
+    <circle cx="240" cy="240" r="${CORE_R + 20}" fill="url(#plate${id})" stroke="#000" stroke-width="3"/>
+    ${[0,90,180,270].map(a=>`<rect x="236" y="${240 - CORE_R - 16}" width="8" height="12" rx="3" fill="#000" transform="rotate(${a} 240 240)" opacity=".8"/>`).join('')}
+    <circle cx="240" cy="240" r="${CORE_R + 10}" fill="${t.glow}" opacity="${o.theme==='alien'?.35:.45}" filter="url(#blur${id})" ${o.theme==='red'?anim('breathe',3.2):''}/>
     <g ${o.theme==='red'?anim('flicker',4):''}>
-      <circle cx="240" cy="240" r="150" fill="url(#core${id})"/>
-      <g clip-path="url(#clip${id})">
+      <circle cx="240" cy="240" r="${CORE_R}" fill="url(#core${id})"/>
+      <g clip-path="url(#fclip${id})">
         ${o.theme==='master' ? `<rect x="200" y="40" width="60" height="400" fill="#fff" opacity=".35" ${anim('sheen',3.5)}/>` : ''}
         ${o.theme==='red' ? `<rect x="80" y="230" width="320" height="20" fill="#fff" opacity=".12" ${anim('scan',2.6)}/>` : ''}
         <polygon points="226,240 104,30 60,30 60,450 104,450" fill="${t.wedge}"/>
         <polygon points="254,240 376,30 420,30 420,450 376,450" fill="${t.wedge}"/>
-        <ellipse cx="240" cy="150" rx="70" ry="22" fill="#fff" opacity=".28"/>
+        <ellipse cx="240" cy="${240 - CORE_R * .62}" rx="${CORE_R * .47}" ry="${CORE_R * .15}" fill="#fff" opacity=".28"/>
       </g>
-      <circle cx="240" cy="240" r="150" fill="none" stroke="#000" stroke-width="5"/>
-      <circle cx="240" cy="240" r="146" fill="none" stroke="#fff" stroke-width="1" opacity=".18"/>
+      <circle cx="240" cy="240" r="${CORE_R}" fill="none" stroke="#000" stroke-width="5"/>
+      <circle cx="240" cy="240" r="${CORE_R - 4}" fill="none" stroke="#fff" stroke-width="1" opacity=".18"/>
     </g>`;
 }
 
+// The Omnitrix activation button, printed in the bottom bulb.
+const dialButton = (ink, cy = 348) => `<g opacity=".7">
+    <circle cx="240" cy="${cy}" r="20" fill="none" stroke="${ink}" stroke-width="3"/>
+    <circle cx="240" cy="${cy}" r="12" fill="${ink}" opacity=".25"/>
+    <circle cx="240" cy="${cy}" r="4" fill="${ink}"/>
+  </g>`;
+
+// Minimal face: the hourglass is the hero. Time is small, printed in ink in the top bulb.
 function faceSVG(o) {
   const id = ++UID, t = THEMES[o.theme], d = o.time;
   const h = o.h24 ? d.getHours() : (d.getHours() % 12 || 12);
-  const curved = (pathId, txt, color, size=13, spacing=4) =>
-    `<text font-family="Orbitron" font-weight="700" font-size="${size}" letter-spacing="${spacing}" fill="${color}"><textPath href="#${pathId}${id}" startOffset="50%" text-anchor="middle">${txt}</textPath></text>`;
+  const ink = (y, txt, size, weight = 900, spacing = 0, opacity = 1) =>
+    `<text x="240" y="${y}" text-anchor="middle" font-family="Orbitron" font-weight="${weight}" font-size="${size}" letter-spacing="${spacing}" fill="${t.ink}" opacity="${opacity}">${txt}</text>`;
+  const time = ink(141, `${pad(h)}:${pad(d.getMinutes())}`, 26);
 
-  let top, bottom;
+  let content;
   if (o.theme === 'alien') {
     const a = ALIENS[o.alien];
-    top = emblem(a, 240, 132, 46, t.ink) +
-          `<text x="240" y="186" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="13" letter-spacing="2" fill="${t.ink}">${a.name}</text>`;
+    content = time + ink(166, a.name, a.name.length > 9 ? 10 : 11, 700, 1.5, .8) + emblem(a, 240, 306, 38, t.ink) +
+      (o.countdown != null ? ink(370, `${pad(Math.floor(o.remaining/60))}:${pad(Math.floor(o.remaining%60))}`, 18) : '');
   } else {
-    top = `<text x="240" y="134" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="20" letter-spacing="2" fill="${t.ink}">${DAYS[d.getDay()]} ${pad(d.getDate())}</text>
-           <text x="240" y="170" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="${t.ink}" opacity=".8">⚡${o.battery}%</text>`;
+    content = time + ink(166, `${DAYS[d.getDay()]} ${pad(d.getDate())}`, 11, 700, 3, .75) + dialButton(t.ink);
   }
-  bottom = `
-    <g transform="translate(240 336)">
-      <path d="M0 8C-4 2-14 -4-14-12C-14-18-9-22-4-22C-1-22 0-20 0-18C0-20 1-22 4-22C9-22 14-18 14-12C14-4 4 2 0 8Z" transform="translate(-34 -2) scale(.8)" fill="${t.ink}" class="hb${id}"/>
-      <text x="12" y="6" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="28" fill="${t.ink}">${o.hr}</text>
-    </g>
-    <text x="240" y="366" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="3" fill="${t.ink}" opacity=".8">BPM</text>`;
 
   const extras = [];
   if (o.theme === 'master') {
-    // orbiting roster — every alien unlocked
-    extras.push(`<g ${anim('spin-slow',40)} opacity=".9">${ALIENS.map((a,i)=>{const [x,y]=polar(170, i*360/ALIENS.length); return emblem(a,x,y,14,t.slit);}).join('')}</g>`);
+    // orbiting roster: every alien unlocked
+    extras.push(`<g ${anim('spin-slow',40)} opacity=".9">${ALIENS.map((a,i)=>{const [x,y]=polar(CORE_R + 10, i*360/ALIENS.length); return emblem(a,x,y,12,t.slit);}).join('')}</g>`);
   }
   if (o.theme === 'alien' && o.countdown != null) {
     extras.push(`<path d="${arc(226, 0, Math.max(.5, o.countdown*359.9))}" fill="none" stroke="${t.text}" stroke-width="6" stroke-linecap="round" filter="url(#glow${id})"/>`);
   }
+  const warn = o.theme === 'red'
+    ? `<g class="blink"><text font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="2" fill="${t.text}"><textPath href="#arcBot${id}" startOffset="50%" text-anchor="middle">▲ ENERGY LOW</textPath></text></g>`
+    : '';
 
-  const beat = (60 / o.hr).toFixed(2);
   return `<svg viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
     ${defs(t,id)}
-    <style>.hb${id}{transform-box:fill-box;transform-origin:center;animation:hb${id} ${beat}s ease-out infinite;animation-delay:-${((performance.now()/1000)%beat).toFixed(3)}s}@keyframes hb${id}{0%{transform:translate(-34px,-2px) scale(.8)}15%{transform:translate(-34px,-2px) scale(1)}35%{transform:translate(-34px,-2px) scale(.8)}}</style>
     ${bezel(t,id,o)}
     ${hourglass(t,id,o)}
-    ${o.theme!=='master' ? curved('arcTop', t.label === 'ALIEN FORM' ? 'ALIEN FORM' : 'OMNITRIX', t.text, 11, 5) : curved('arcTop', 'MASTER CONTROL', t.slit, 11, 4)}
-    ${extras.join('')}
-    ${o.theme==='alien' && o.countdown!=null ? curved('arcBot', `${pad(Math.floor(o.remaining/60))}:${pad(Math.floor(o.remaining%60))} REMAINING`, t.text, 12, 3)
-      : o.theme==='red' ? `<g class="blink">${curved('arcBot', '▲ ENERGY LOW · RECHARGING', t.text, 12, 2)}</g>`
-      : o.theme==='master' ? '' : curved('arcBot', `${o.steps.toLocaleString()} STEPS`, '#4f7a45', 11, 3)}
-    <text x="166" y="260" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="54" fill="${t.text}" filter="url(#glow${id})">${pad(h)}</text>
-    <text x="314" y="260" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="54" fill="${t.text}" filter="url(#glow${id})">${pad(d.getMinutes())}</text>
-    <circle cx="240" cy="240" r="4" fill="${t.wedge}" class="blink"/>
-    ${top}${bottom}
+    ${extras.join('')}${warn}
+    ${content}
   </svg>`;
 }
 
@@ -365,22 +362,56 @@ function hrSVG(o) {
   </svg>`;
 }
 
+// Always-on art: a "powered-down" Omnitrix. Thin neon lines, dimly glowing bulbs,
+// everything else dark. Static (no text) so the watch face can reuse it as a layer.
+const AOD = {
+  green: { line:'#46C424', dim:'#0E3A08', faint:'#163A14', label:'#2A6A1A' },
+  alien: { line:'#D6F5CC', dim:'#26332A', faint:'#202A22', label:'#7FA878' },
+};
+function ambientArt(id, mode='green') {
+  const c = AOD[mode];
+  const ticks = Array.from({length:60}, (_,i) => {
+    const hour = i % 5 === 0, [x0,y0] = polar(hour ? 206 : 211, i*6), [x1,y1] = polar(217, i*6);
+    return `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${hour ? c.label : c.faint}" stroke-width="${hour?2.5:1.5}" stroke-linecap="round"/>`;
+  }).join('');
+  // slits as dim outlines
+  const slits = [45,135,225,315].map((a,i) => {
+    return `<rect x="233" y="5" width="14" height="18" rx="3" transform="rotate(${a} 240 240)" fill="${c.dim}" stroke="${c.label}" stroke-width="1.5"/>`;
+  }).join('');
+  const bulb = (y0) => `<linearGradient id="bulb${id}${y0}" x1="0" y1="${y0 < 240 ? 0 : 1}" x2="0" y2="${y0 < 240 ? 1 : 0}">
+      <stop offset="0" stop-color="${c.dim}"/><stop offset=".9" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
+  return `<defs>
+      ${bulb(90)}${bulb(390)}
+      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <clipPath id="aclip${id}"><circle cx="240" cy="240" r="${CORE_R}"/></clipPath>
+      <path id="aarc${id}" d="${arc(172, -62, 62)}"/>
+    </defs>
+    <circle cx="240" cy="240" r="228" fill="none" stroke="${c.faint}" stroke-width="1.5"/>
+    ${ticks}${slits}
+    <circle cx="240" cy="240" r="${CORE_R + 20}" fill="none" stroke="${c.faint}" stroke-width="1.5"/>
+    ${[0,90,180,270].map(a=>`<rect x="237" y="${240 - CORE_R - 15}" width="6" height="10" rx="2" fill="${c.faint}" transform="rotate(${a} 240 240)"/>`).join('')}
+    <g clip-path="url(#aclip${id})">
+      <polygon points="226,240 104,30 376,30 254,240" fill="url(#bulb${id}90)"/>
+      <polygon points="226,240 104,450 376,450 254,240" fill="url(#bulb${id}390)"/>
+    </g>
+    <g filter="url(#aglow${id})" fill="none" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round">
+      <circle cx="240" cy="240" r="${CORE_R}"/>
+      <g clip-path="url(#aclip${id})">
+        <polyline points="104,30 226,240 104,450"/>
+        <polyline points="376,30 254,240 376,450"/>
+      </g>
+    </g>
+    ${mode === 'green' ? dialButton(c.label) : ''}`;
+}
+
 function ambientSVG(o) {
-  const id = ++UID, c = '#3fae22';
+  const id = ++UID, c = AOD.green;
   const h = o.time.getHours() % 12 || 12;
   return `<svg viewBox="0 0 480 480">
-    ${defs(THEMES.green,id)}
     <rect width="480" height="480" fill="#000"/>
-    <circle cx="240" cy="240" r="226" fill="none" stroke="#1d2a1b" stroke-width="2"/>
-    <circle cx="240" cy="240" r="150" fill="none" stroke="${c}" stroke-width="2"/>
-    <g clip-path="url(#clip${id})">
-      <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${c}" stroke-width="2"/>
-      <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${c}" stroke-width="2"/>
-    </g>
-    <text x="166" y="260" text-anchor="middle" font-family="Orbitron" font-weight="500" font-size="54" fill="none" stroke="${c}" stroke-width="1.6">${pad(h)}</text>
-    <text x="314" y="260" text-anchor="middle" font-family="Orbitron" font-weight="500" font-size="54" fill="none" stroke="${c}" stroke-width="1.6">${pad(o.time.getMinutes())}</text>
-    <text x="240" y="134" text-anchor="middle" font-family="Orbitron" font-size="18" fill="${c}">${DAYS[o.time.getDay()]} ${pad(o.time.getDate())}</text>
-    <text x="240" y="346" text-anchor="middle" font-family="Orbitron" font-size="20" fill="${c}">♥ ${o.hr}</text>
+    ${ambientArt(id, 'green')}
+    <text x="240" y="142" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="30" fill="${c.dim}" stroke="${c.line}" stroke-width="1.2">${pad(h)}:${pad(o.time.getMinutes())}</text>
+    <text x="240" y="166" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="3" fill="${c.label}">${DAYS[o.time.getDay()]} ${pad(o.time.getDate())}</text>
   </svg>`;
 }
 

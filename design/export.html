@@ -30,14 +30,13 @@ const whiteGlow = id => `<filter id="wg${id}" x="-50%" y="-50%" width="200%" hei
   <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
 
 const LAYERS = {
-  // Everything static on the face: bezel, unlit slits, unlit seconds track, plate, core, wedges, top label.
+  // Everything static on the face: bezel, unlit slits, unlit seconds track, plate, core, wedges.
   base() {
     const id = ++UID;
     const o = { theme:'static', battery:0, countdown:0, time:new Date(2026,0,1,10,10,0) };
-    const label = themeName === 'master'
-      ? curvedLabel(id, 'arcTop', 'MASTER CONTROL', t.slit, 11, 4)
-      : curvedLabel(id, 'arcTop', themeName === 'alien' ? 'ALIEN FORM' : 'OMNITRIX', t.text, 11, 5);
-    return `${defs(t,id)}${bezel(t,id,o)}${hourglass(t,id,o)}${label}`;
+    // Human faces carry the activation button in the bottom bulb; the alien badge shows its emblem there.
+    const button = themeName === 'alien' ? '' : dialButton(t.ink);
+    return `${defs(t,id)}${bezel(t,id,o)}${hourglass(t,id,o)}${button}`;
   },
   // One lit energy slit (k = 0..3 in light order), white so the face can tint it.
   slit() {
@@ -48,33 +47,20 @@ const LAYERS = {
   },
   // Master Control roster ring, rotated slowly by the face.
   orbit() {
-    return ALIENS.map((a,i) => { const [x,y] = polar(170, i*360/ALIENS.length); return emblem(a, x, y, 14, WHITE); }).join('');
+    return ALIENS.map((a,i) => { const [x,y] = polar(CORE_R + 10, i*360/ALIENS.length); return emblem(a, x, y, 12, WHITE); }).join('');
   },
   // Low-energy warning along the bottom of the plate (blinks on the face).
   warn() {
     const id = ++UID;
-    return `${defs(t,id)}${curvedLabel(id, 'arcBot', '▲ ENERGY LOW · RECHARGING', t.text, 12, 2)}`;
+    return `${defs(t,id)}${curvedLabel(id, 'arcBot', '▲ ENERGY LOW', t.text, 11, 2)}`;
   },
   // One alien emblem (white, tinted on the face), centred at 240,240.
   emblem() {
     return emblem(ALIENS[+q.get('i')], 240, 240, 38, WHITE);
   },
-  heart() {
-    return `<path d="M0 8C-4 2-14 -4-14-12C-14-18-9-22-4-22C-1-22 0-20 0-18C0-20 1-22 4-22C9-22 14-18 14-12C14-4 4 2 0 8Z" transform="translate(240 240) scale(.8)" fill="${WHITE}"/>`;
-  },
-  bolt() {
-    return `<path d="M244 226L232 243H240L236 254L248 237H240Z" fill="${WHITE}"/>`;
-  },
-  // Always-on display: hourglass outline only.
+  // Always-on display: the powered-down Omnitrix (mode=alien for the white badge version).
   ambient() {
-    const id = ++UID, c = '#3fae22';
-    return `${defs(THEMES.green,id)}
-      <circle cx="240" cy="240" r="226" fill="none" stroke="#1d2a1b" stroke-width="2"/>
-      <circle cx="240" cy="240" r="150" fill="none" stroke="${c}" stroke-width="2"/>
-      <g clip-path="url(#clip${id})">
-        <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${c}" stroke-width="2"/>
-        <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${c}" stroke-width="2"/>
-      </g>`;
+    return ambientArt(++UID, q.get('mode') || 'green');
   },
   // Picker thumbnail: the full green face at 10:10.
   preview() {

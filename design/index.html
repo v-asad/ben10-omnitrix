@@ -301,15 +301,15 @@ function buildStatic() {
 const fixed = new Date(2026, 9, 22, 10, 10, 38);
 const base = { time:fixed, hr:72, steps:6842, alien:0 };
 const cards = [
-  ['STANDARD · 20–90%', 'The classic green Omnitrix. Hours and minutes sit in the black wedges, so the hourglass waist works as the colon. Date and battery go in the top bulb, live BPM in the bottom.', faceSVG({...base, theme:'green', battery:64})],
+  ['STANDARD · 20–90%', 'Minimal classic Omnitrix. Big glowing time in the black wedges, with the hourglass waist as the colon. The date sits in the top bulb and the activation button in the bottom. The energy slits show battery.', faceSVG({...base, theme:'green', battery:64})],
   ['MASTER CONTROL · >90%', 'Gold-chrome bezel, all four energy slits lit, the full roster orbiting the dial and a light sweep across the core. Every alien is unlocked with no timeout.', faceSVG({...base, theme:'master', battery:96})],
   ['RECHARGE · <20%', 'Red core with a flicker, scan line and blinking slit. Transforming is locked; you get a buzz and a shake if you try.', faceSVG({...base, theme:'red', battery:12, hr:68})],
-  ['ALIEN FORM', 'The white badge Ben wears as an alien. The bezel arc and seconds track count down your alien time, and the top bulb shows who you are.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
+  ['ALIEN FORM', 'The white badge Ben wears as an alien. The top bulb shows who you are and the bottom bulb counts down your alien time, mirrored on the bezel arc.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
   ['DIAL UP · SELECT', 'Tap the core and it "pops up" into a hologram. Swipe the touch bezel to cycle DNA. Each alien also launches a watch tool.', selectorSVG({...base, theme:'green', battery:64, alien:2})],
   ['SELECT · LOCKED', 'At under 20% the hologram dims to dead red and the dial says it needs a charge.', selectorSVG({...base, theme:'red', battery:12, alien:1})],
   ['DNA DOSSIER', 'Swipe up on the hologram for the full profile: species, home world, powers, weakness, and the watch tool it opens. Stat arcs sit in the bezel.', dossierSVG({...base, theme:'green', battery:64, alien:3})],
   ['BIO-SCAN · HEART RATE', 'A mini Omnitrix core beats in time with your pulse. A live ECG runs over a DNA helix, and the zone gauge names each zone after an alien.', hrSVG({...base, hr:132})],
-  ['AMBIENT / AOD', 'Outline-only hourglass for always-on. Under 5% of pixels are lit to save the battery.', ambientSVG({...base})],
+  ['AMBIENT / AOD', 'Powered-down Omnitrix: neon-tube digits, dimly glowing bulbs and battery slits, all low brightness to save the battery.', ambientSVG({...base})],
 ];
 $('gallery').innerHTML = cards.map(([h,p,svg]) => `<div class="card"><div class="watch"><div class="screen">${svg}</div></div><h4>${h}</h4><p>${p}</p></div>`).join('');
 

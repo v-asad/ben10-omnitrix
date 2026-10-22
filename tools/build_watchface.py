@@ -32,11 +32,14 @@ FONT_URLS = {
 }
 
 THEMES = ["green", "master", "red"]
+ALIEN_COUNT = 13
+APP_STATE_PROVIDER = "dev.omnitrix.app/dev.omnitrix.app.complication.OmnitrixStateService"
 # Text colours per theme, mirroring THEMES in design/omnitrix.js
 COLORS = {
     "green":  {"text": "#8AFF52", "ink": "#062A02", "slit": "#5DFF2A", "glow": "#4DFF1F", "dim": "#4F7A45"},
     "master": {"text": "#D6FF6A", "ink": "#0A2A02", "slit": "#F4FF9A", "glow": "#C4FF3A", "dim": "#8A8A45"},
     "red":    {"text": "#FF5A46", "ink": "#2A0202", "slit": "#FF3A2A", "glow": "#FF2A1A", "dim": "#7A3A35"},
+    "alien":  {"text": "#9BFF66", "ink": "#0D3008", "slit": "#9BFF66", "glow": "#4DFF1F", "dim": "#9BFF66"},
 }
 
 
@@ -75,8 +78,10 @@ def render(port, query, out):
 def export_layers():
     """Render all layers; returns {resource_name: (x, y, w, h)}."""
     jobs = {}
-    for th in THEMES:
+    for th in THEMES + ["alien"]:
         jobs[f"base_{th}"] = (f"layer=base&theme={th}", False)
+    for i in range(ALIEN_COUNT):
+        jobs[f"emblem_{i}"] = (f"layer=emblem&i={i}", True)
     for k in range(4):
         jobs[f"slit_{k}"] = (f"layer=slit&k={k}", True)
     jobs["orbit"] = ("layer=orbit", True)
@@ -187,6 +192,58 @@ def theme_layer(th, boxes):
     return "\n".join(parts)
 
 
+def alien_slot(boxes):
+    """Hidden slot over the core, fed by the Omnitrix app.
+
+    value 0 = human (draws nothing), value n = alien n-1: the slot repaints the face as
+    the white alien badge. Tapping the core opens the app (WFF can't launch apps directly).
+    """
+    c = COLORS["alien"]
+    value = "[COMPLICATION.RANGED_VALUE_VALUE]"
+    emblems = "".join(
+        f'<Compare expression="a{i}">'
+        + image(f"emblem_{i}", {f"emblem_{i}": (boxes[f"emblem_{i}"][0], boxes[f"emblem_{i}"][1] - 128,
+                                               boxes[f"emblem_{i}"][2], boxes[f"emblem_{i}"][3])}, f'tintColor="{c["ink"]}"')
+        + "</Compare>" for i in range(ALIEN_COUNT))
+    emblem_exprs = "".join(f'<Expression name="a{i}">{value} == {i + 1}</Expression>' for i in range(ALIEN_COUNT))
+    _, _, hw, hh = boxes["icon_heart"]
+    face = "\n".join([
+        image("base_alien", boxes),
+        f'<Condition><Expressions>{emblem_exprs}</Expressions>{emblems}</Condition>',
+        text(160, 140, 160, 20, '%s<Parameter expression="[COMPLICATION.TITLE]"/>', 13, c["ink"], spacing=0.1),
+        text(96, 205, 140, 70, '%s<Parameter expression="[HOUR_1_12_Z]"/>', 54, c["text"], glow=c["glow"]),
+        text(244, 205, 140, 70, '%s<Parameter expression="[MINUTE_Z]"/>', 54, c["text"], glow=c["glow"]),
+        f'<PartImage x="192" y="{314 + (40 - hh) // 2}" width="{hw}" height="{hh}" tintColor="{c["ink"]}"><Image resource="icon_heart"/></PartImage>',
+        text(186 + hw + 14, 316, 70, 36, '%d<Parameter expression="[HEART_RATE]"/>', 28, c["ink"], align="START"),
+        text(200, 355, 80, 16, "BPM", 11, c["ink"], family="orbitron_bold", spacing=0.25),
+        f'<PartText x="0" y="0" width="480" height="480">'
+        f'<TextCircular centerX="240" centerY="240" width="344" height="344" startAngle="242" endAngle="118" direction="COUNTER_CLOCKWISE">'
+        f'<Font family="orbitron_bold" size="12" color="{c["text"]}" letterSpacing="0.2">'
+        f'<Template>%s REMAINING<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></TextCircular></PartText>',
+    ])
+    return f'''    <!-- Full-face slot so the badge can repaint everything (drawing is clipped to the
+         slot bounds); only the oval over the core is tappable. -->
+    <ComplicationSlot slotId="0" name="omnitrix_core" x="0" y="0" width="480" height="480"
+        supportedTypes="RANGED_VALUE" isCustomizable="FALSE">
+      <!-- The runtime requires a fallback of a supported type; battery is RANGED_VALUE.
+           Alien mode below also checks MAX == ALIEN_COUNT so battery data is ignored. -->
+      <DefaultProviderPolicy defaultSystemProvider="WATCH_BATTERY" defaultSystemProviderType="RANGED_VALUE"
+          primaryProvider="{APP_STATE_PROVIDER}" primaryProviderType="RANGED_VALUE"/>
+      <BoundingBox x="0" y="0" width="480" height="480"/>
+      <Complication type="RANGED_VALUE">
+        <Condition>
+          <Expressions><Expression name="alien">{value} &gt; 0 &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == {ALIEN_COUNT}</Expression></Expressions>
+          <Compare expression="alien">
+            <Group name="alien_form" x="0" y="0" width="480" height="480">
+{face}
+            </Group>
+          </Compare>
+        </Condition>
+      </Complication>
+      <Variant mode="AMBIENT" target="alpha" value="0"/>
+    </ComplicationSlot>'''
+
+
 def watchface_xml(boxes):
     themes = {th: theme_layer(th, boxes) for th in THEMES}
     ambient = "\n".join([
@@ -231,6 +288,8 @@ def watchface_xml(boxes):
       <Variant mode="AMBIENT" target="alpha" value="255"/>
 {ambient}
     </Group>
+    <!-- Alien form: the app's state complication repaints the face when you transform. -->
+{alien_slot(boxes)}
   </Scene>
 </WatchFace>
 '''

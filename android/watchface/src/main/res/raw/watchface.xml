@@ -73,5 +73,35 @@
 <PartText x="244" y="205" width="140" height="70"><Text align="CENTER"><Font family="orbitron_bold" size="54" color="#3FAE22"><Template>%s<Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText>
 <PartText x="160" y="113" width="160" height="28"><Text align="CENTER"><Font family="orbitron_bold" size="18" color="#3FAE22"><Upper><Template>%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/></Template></Upper></Font></Text></PartText>
     </Group>
+    <!-- Alien form: the app's state complication repaints the face when you transform. -->
+    <!-- Full-face slot so the badge can repaint everything (drawing is clipped to the
+         slot bounds); only the oval over the core is tappable. -->
+    <ComplicationSlot slotId="0" name="omnitrix_core" x="0" y="0" width="480" height="480"
+        supportedTypes="RANGED_VALUE" isCustomizable="FALSE">
+      <!-- The runtime requires a fallback of a supported type; battery is RANGED_VALUE.
+           Alien mode below also checks MAX == ALIEN_COUNT so battery data is ignored. -->
+      <DefaultProviderPolicy defaultSystemProvider="WATCH_BATTERY" defaultSystemProviderType="RANGED_VALUE"
+          primaryProvider="dev.omnitrix.app/dev.omnitrix.app.complication.OmnitrixStateService" primaryProviderType="RANGED_VALUE"/>
+      <BoundingBox x="0" y="0" width="480" height="480"/>
+      <Complication type="RANGED_VALUE">
+        <Condition>
+          <Expressions><Expression name="alien">[COMPLICATION.RANGED_VALUE_VALUE] &gt; 0 &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == 13</Expression></Expressions>
+          <Compare expression="alien">
+            <Group name="alien_form" x="0" y="0" width="480" height="480">
+<PartImage x="0" y="0" width="480" height="480" ><Image resource="base_alien"/></PartImage>
+<Condition><Expressions><Expression name="a0">[COMPLICATION.RANGED_VALUE_VALUE] == 1</Expression><Expression name="a1">[COMPLICATION.RANGED_VALUE_VALUE] == 2</Expression><Expression name="a2">[COMPLICATION.RANGED_VALUE_VALUE] == 3</Expression><Expression name="a3">[COMPLICATION.RANGED_VALUE_VALUE] == 4</Expression><Expression name="a4">[COMPLICATION.RANGED_VALUE_VALUE] == 5</Expression><Expression name="a5">[COMPLICATION.RANGED_VALUE_VALUE] == 6</Expression><Expression name="a6">[COMPLICATION.RANGED_VALUE_VALUE] == 7</Expression><Expression name="a7">[COMPLICATION.RANGED_VALUE_VALUE] == 8</Expression><Expression name="a8">[COMPLICATION.RANGED_VALUE_VALUE] == 9</Expression><Expression name="a9">[COMPLICATION.RANGED_VALUE_VALUE] == 10</Expression><Expression name="a10">[COMPLICATION.RANGED_VALUE_VALUE] == 11</Expression><Expression name="a11">[COMPLICATION.RANGED_VALUE_VALUE] == 12</Expression><Expression name="a12">[COMPLICATION.RANGED_VALUE_VALUE] == 13</Expression></Expressions><Compare expression="a0"><PartImage x="230" y="95" width="20" height="34" tintColor="#0D3008"><Image resource="emblem_0"/></PartImage></Compare><Compare expression="a1"><PartImage x="224" y="103" width="33" height="18" tintColor="#0D3008"><Image resource="emblem_1"/></PartImage></Compare><Compare expression="a2"><PartImage x="224" y="96" width="32" height="34" tintColor="#0D3008"><Image resource="emblem_2"/></PartImage></Compare><Compare expression="a3"><PartImage x="227" y="98" width="26" height="31" tintColor="#0D3008"><Image resource="emblem_3"/></PartImage></Compare><Compare expression="a4"><PartImage x="230" y="94" width="20" height="35" tintColor="#0D3008"><Image resource="emblem_4"/></PartImage></Compare><Compare expression="a5"><PartImage x="222" y="102" width="36" height="27" tintColor="#0D3008"><Image resource="emblem_5"/></PartImage></Compare><Compare expression="a6"><PartImage x="223" y="95" width="34" height="34" tintColor="#0D3008"><Image resource="emblem_6"/></PartImage></Compare><Compare expression="a7"><PartImage x="228" y="96" width="24" height="32" tintColor="#0D3008"><Image resource="emblem_7"/></PartImage></Compare><Compare expression="a8"><PartImage x="223" y="95" width="34" height="31" tintColor="#0D3008"><Image resource="emblem_8"/></PartImage></Compare><Compare expression="a9"><PartImage x="227" y="93" width="26" height="28" tintColor="#0D3008"><Image resource="emblem_9"/></PartImage></Compare><Compare expression="a10"><PartImage x="224" y="96" width="32" height="32" tintColor="#0D3008"><Image resource="emblem_10"/></PartImage></Compare><Compare expression="a11"><PartImage x="222" y="103" width="36" height="18" tintColor="#0D3008"><Image resource="emblem_11"/></PartImage></Compare><Compare expression="a12"><PartImage x="223" y="95" width="34" height="34" tintColor="#0D3008"><Image resource="emblem_12"/></PartImage></Compare></Condition>
+<PartText x="160" y="140" width="160" height="20"><Text align="CENTER"><Font family="orbitron_black" size="13" color="#0D3008" letterSpacing="0.1"><Template>%s<Parameter expression="[COMPLICATION.TITLE]"/></Template></Font></Text></PartText>
+<PartText x="96" y="205" width="140" height="70"><Text align="CENTER"><Font family="orbitron_black" size="54" color="#9BFF66"><OutGlow color="#4DFF1F" radius="10"/><Template>%s<Parameter expression="[HOUR_1_12_Z]"/></Template></Font></Text></PartText>
+<PartText x="244" y="205" width="140" height="70"><Text align="CENTER"><Font family="orbitron_black" size="54" color="#9BFF66"><OutGlow color="#4DFF1F" radius="10"/><Template>%s<Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText>
+<PartImage x="192" y="321" width="24" height="25" tintColor="#0D3008"><Image resource="icon_heart"/></PartImage>
+<PartText x="224" y="316" width="70" height="36"><Text align="START"><Font family="orbitron_black" size="28" color="#0D3008"><Template>%d<Parameter expression="[HEART_RATE]"/></Template></Font></Text></PartText>
+<PartText x="200" y="355" width="80" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="11" color="#0D3008" letterSpacing="0.25">BPM</Font></Text></PartText>
+<PartText x="0" y="0" width="480" height="480"><TextCircular centerX="240" centerY="240" width="344" height="344" startAngle="242" endAngle="118" direction="COUNTER_CLOCKWISE"><Font family="orbitron_bold" size="12" color="#9BFF66" letterSpacing="0.2"><Template>%s REMAINING<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></TextCircular></PartText>
+            </Group>
+          </Compare>
+        </Condition>
+      </Complication>
+      <Variant mode="AMBIENT" target="alpha" value="0"/>
+    </ComplicationSlot>
   </Scene>
 </WatchFace>

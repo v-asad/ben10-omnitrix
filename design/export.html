@@ -55,6 +55,10 @@ const LAYERS = {
     const id = ++UID;
     return `${defs(t,id)}${curvedLabel(id, 'arcBot', '▲ ENERGY LOW · RECHARGING', t.text, 12, 2)}`;
   },
+  // One alien emblem (white, tinted on the face), centred at 240,240.
+  emblem() {
+    return emblem(ALIENS[+q.get('i')], 240, 240, 38, WHITE);
+  },
   heart() {
     return `<path d="M0 8C-4 2-14 -4-14-12C-14-18-9-22-4-22C-1-22 0-20 0-18C0-20 1-22 4-22C9-22 14-18 14-12C14-4 4 2 0 8Z" transform="translate(240 240) scale(.8)" fill="${WHITE}"/>`;
   },

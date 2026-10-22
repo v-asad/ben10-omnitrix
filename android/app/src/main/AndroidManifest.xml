@@ -10,7 +10,7 @@
     <application
         android:label="@string/app_name"
         android:icon="@drawable/ic_omnitrix"
-        android:theme="@android:style/Theme.DeviceDefault">
+        android:theme="@style/Theme.Omnitrix">
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
@@ -19,7 +19,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:taskAffinity="">
+            android:taskAffinity=""
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

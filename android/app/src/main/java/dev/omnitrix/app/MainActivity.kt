@@ -3,66 +3,74 @@ package dev.omnitrix.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Text
+import dev.omnitrix.app.ui.AlienFormScreen
+import dev.omnitrix.app.ui.DossierScreen
+import dev.omnitrix.app.ui.SelectorScreen
 
-/** Bridge spike: a plain list to transform, so we can prove the face reacts. */
+/** Tapping the Omnitrix face lands here: the dial pops up. */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Debug hook: adb shell am start -n dev.omnitrix.app/.MainActivity --ei transform <alien> [--ei seconds <n>]
-        intent.getIntExtra(EXTRA_TRANSFORM, -1).takeIf { it in Aliens.names.indices }?.let { alien ->
+        intent.getIntExtra(EXTRA_TRANSFORM, -1).takeIf { it in Aliens.all.indices }?.let { alien ->
             Transformer.transform(this, alien, intent.getIntExtra(EXTRA_SECONDS, 60) * 1000L)
         }
-        setContent { MaterialTheme { SpikeScreen() } }
+        setContent { OmnitrixApp(onDone = ::finish) }
+    }
+
+    private companion object {
+        const val EXTRA_TRANSFORM = "transform"
+        const val EXTRA_SECONDS = "seconds"
     }
 }
 
-private const val SPIKE_ALIEN_TIME_MS = 60_000L
-private const val EXTRA_TRANSFORM = "transform"
-private const val EXTRA_SECONDS = "seconds"
-
 @Composable
-private fun SpikeScreen() {
+private fun OmnitrixApp(onDone: () -> Unit) {
     val context = LocalContext.current
     val state = remember { OmnitrixState(context) }
-    var current by remember { mutableStateOf(state.current()) }
+    val energy = remember { Energy.read(context) }
+    var transformation by remember { mutableStateOf(state.current()) }
+    var cursor by remember { mutableIntStateOf(state.lastAlien) }
+    var dossier by remember { mutableStateOf(false) }
 
-    ScalingLazyColumn(modifier = Modifier.fillMaxSize()) {
-        item {
-            Text(
-                text = current?.let { Aliens.names[it.alien] } ?: "HUMAN",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        if (current != null) {
-            item {
-                Button(onClick = { Transformer.revert(context); current = null }, modifier = Modifier.fillMaxWidth()) {
-                    Text("REVERT")
-                }
-            }
-        }
-        items(Aliens.names.size) { i ->
-            Button(
-                onClick = {
-                    Transformer.transform(context, i, SPIKE_ALIEN_TIME_MS)
-                    current = state.current()
+    LaunchedEffect(Unit) { if (transformation == null) Haptics.dialUp(context) }
+
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        val current = transformation
+        when {
+            current != null -> AlienFormScreen(
+                transformation = current,
+                onRevert = {
+                    Transformer.revert(context)
+                    Haptics.revert(context)
+                    onDone()
                 },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(Aliens.names[i]) }
+                onExpired = { transformation = null },
+            )
+            dossier -> DossierScreen(cursor, energy, onClose = { dossier = false })
+            else -> SelectorScreen(
+                energy = energy,
+                initialAlien = cursor,
+                onSelectedChange = { cursor = it },
+                onTransform = { alien ->
+                    Transformer.transform(context, alien, energy.alienTimeMillis)
+                    onDone()
+                },
+                onOpenDossier = { cursor = it; dossier = true },
+            )
         }
     }
 }

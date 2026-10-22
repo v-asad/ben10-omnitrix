@@ -15,9 +15,13 @@ fi
 (cd android && ./gradlew -q :watchface:assembleDebug)
 APK=android/watchface/build/outputs/apk/debug/watchface-debug.apk
 
-if ! "$ADB" get-state >/dev/null 2>&1; then
+# After pairing, the watch often shows up twice (manual IP + mDNS auto-connect),
+# which makes plain `adb` refuse with "more than one device". Pick one.
+SERIAL="${ANDROID_SERIAL:-$("$ADB" devices | awk 'NR>1 && $2=="device" {print $1; exit}')}"
+if [[ -z "$SERIAL" ]]; then
   echo "No watch connected. Pair it first (see README → Install on your watch)." >&2
   exit 1
 fi
-"$ADB" install -r "$APK"
+echo "Installing on $SERIAL ($("$ADB" -s "$SERIAL" shell getprop ro.product.model | tr -d '\r'))"
+"$ADB" -s "$SERIAL" install -r "$APK"
 echo "Installed. Long-press the current face on the watch and pick “Omnitrix”."

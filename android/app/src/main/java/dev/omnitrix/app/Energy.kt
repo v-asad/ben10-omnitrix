@@ -12,14 +12,13 @@ enum class Energy(
     val bright: Color,
     val dim: Color,
     val ring: Color,
-    /** How long a transformation lasts in this state; 0 = transforming is locked. */
-    val alienTimeMillis: Long,
 ) {
-    MASTER(Color(0xFFD6FF6A), Color(0xFFF4FFC0), Color(0xFF4A5A22), Color(0xFFC9B46A), 30 * 60_000L),
-    STANDARD(Color(0xFF7DFF4A), Color(0xFFD8FFC8), Color(0xFF2A4A24), Color(0xFF3A403C), 10 * 60_000L),
-    RECHARGE(Color(0xFFFF4A3A), Color(0xFFFFB8A8), Color(0xFF4A1A16), Color(0xFF3D2A2A), 0L);
+    MASTER(Color(0xFFD6FF6A), Color(0xFFF4FFC0), Color(0xFF4A5A22), Color(0xFFC9B46A)),
+    STANDARD(Color(0xFF7DFF4A), Color(0xFFD8FFC8), Color(0xFF2A4A24), Color(0xFF3A403C)),
+    RECHARGE(Color(0xFFFF4A3A), Color(0xFFFFB8A8), Color(0xFF4A1A16), Color(0xFF3D2A2A));
 
-    val locked get() = alienTimeMillis == 0L
+    /** Transforming is locked when the energy core (battery) is low. */
+    val locked get() = this == RECHARGE
 
     companion object {
         fun of(batteryPercent: Int) = when {

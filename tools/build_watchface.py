@@ -57,7 +57,9 @@ def build_fonts():
             urllib.request.urlretrieve(url, FONT_CACHE / name)
     (RES / "font").mkdir(parents=True, exist_ok=True)
     for weight, res_name in [(900, "orbitron_black"), (700, "orbitron_bold")]:
-        font = instantiateVariableFont(TTFont(FONT_CACHE / "Orbitron-VF.ttf"), {"wght": weight})
+        source = TTFont(FONT_CACHE / "Orbitron-VF.ttf", recalcTimestamp=False)
+        font = instantiateVariableFont(source, {"wght": weight})
+        font.recalcTimestamp = False   # reproducible builds: keep the source's timestamp
         font.save(RES / "font" / f"{res_name}.ttf")
 
 

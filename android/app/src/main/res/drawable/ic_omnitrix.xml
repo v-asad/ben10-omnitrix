@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Omnitrix hourglass: green core, black side wedges. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:fillColor="#2A2F2C" android:pathData="M24,0a24,24 0,1 1,0 48a24,24 0,1 1,0 -48z" />
+    <path android:fillColor="#5DFF2A" android:pathData="M24,6a18,18 0,1 1,0 36a18,18 0,1 1,0 -36z" />
+    <path android:fillColor="#050805" android:pathData="M22.6,24L13,7.5A18,18 0,0 0,13 40.5Z" />
+    <path android:fillColor="#050805" android:pathData="M25.4,24L35,7.5A18,18 0,0 1,35 40.5Z" />
+</vector>

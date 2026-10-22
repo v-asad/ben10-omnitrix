@@ -12,6 +12,7 @@ Usage:  python3 tools/build_watchface.py   (needs Pillow + fonttools, see README
 import functools
 import http.server
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -78,6 +79,30 @@ def render(port, query, out):
         "--default-background-color=00000000", "--virtual-time-budget=5000",
         f"--screenshot={out}", f"http://127.0.0.1:{port}/design/export.html?{query}",
     ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+APP_RES = ROOT / "android/app/src/main/res"
+
+
+def export_app_assets():
+    """Emblems for the companion app: crisp + pre-blurred glow, fixed 240x240 canvas so they align."""
+    drawable = APP_RES / "drawable-nodpi"
+    drawable.mkdir(parents=True, exist_ok=True)
+    (APP_RES / "font").mkdir(parents=True, exist_ok=True)
+    for f in ("orbitron_black.ttf", "orbitron_bold.ttf"):
+        shutil.copy(RES / "font" / f, APP_RES / "font" / f)
+    server = serve_repo()
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            for i in range(ALIEN_COUNT):
+                for kind, query in (("emblem", f"layer=emblem&i={i}&s=160"),
+                                    ("emblem_glow", f"layer=emblemglow&i={i}&s=160&blur=9")):
+                    raw = Path(tmp) / f"{kind}_{i}.png"
+                    render(server.server_port, query, raw)
+                    Image.open(raw).convert("RGBA").crop((120, 120, 360, 360)).save(drawable / f"{kind}_{i}.png", optimize=True)
+    finally:
+        server.shutdown()
+    print(f"  app emblems → {drawable.relative_to(ROOT)}")
 
 
 def export_layers():
@@ -310,6 +335,8 @@ def main():
     boxes = export_layers()
     (RES / "raw").mkdir(parents=True, exist_ok=True)
     (RES / "raw/watchface.xml").write_text(watchface_xml(boxes))
+    print("app assets…")
+    export_app_assets()
     print("wrote", (RES / "raw/watchface.xml").relative_to(ROOT))
 
 

@@ -56,7 +56,13 @@ const LAYERS = {
   },
   // One alien emblem (white, tinted on the face), centred at 240,240.
   emblem() {
-    return emblem(ALIENS[+q.get('i')], 240, 240, 38, WHITE);
+    return emblem(ALIENS[+q.get('i')], 240, 240, +(q.get('s') || 38), WHITE);
+  },
+  // Pre-blurred halo for the app's hologram, so the watch never blurs at runtime.
+  emblemglow() {
+    const id = ++UID;
+    return `<defs><filter id="eg${id}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${q.get('blur') || 10}"/></filter></defs>
+      <g filter="url(#eg${id})">${emblem(ALIENS[+q.get('i')], 240, 240, +(q.get('s') || 38), WHITE)}</g>`;
   },
   // Always-on display: the powered-down Omnitrix (mode=alien for the white badge version).
   ambient() {

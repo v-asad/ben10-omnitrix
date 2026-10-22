@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OMNITRIX OS — Galaxy Watch8 44mm design concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --g:#5dff2a; --bg:#05070a; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background: radial-gradient(1200px 700px at 30% -10%, #0f2a10 0%, transparent 60%), var(--bg);
+    color:#cfe9c6; font-family:"Chakra Petch", system-ui, sans-serif;
+  }
+  header { padding:40px 48px 8px; }
+  h1 { font-family:Orbitron; font-weight:900; letter-spacing:.08em; margin:0; color:var(--g);
+       text-shadow:0 0 18px #3dff0088; font-size:34px; }
+  h1 small { display:block; font-family:"Chakra Petch"; font-weight:400; letter-spacing:.3em; color:#7fa877; font-size:13px; margin-top:6px; }
+  h2 { font-family:Orbitron; letter-spacing:.12em; font-size:16px; color:#9dff7a; margin:48px 48px 6px; text-transform:uppercase; }
+  .lede { margin:0 48px; color:#89a883; max-width:900px; line-height:1.5; }
+
+  /* ---------- watch hardware ---------- */
+  .watch {
+    position:relative; border-radius:50%;
+    background: radial-gradient(circle at 30% 25%, #4a4f55, #1b1e22 45%, #0b0c0e 75%);
+    box-shadow: 0 30px 60px #000c, inset 0 2px 3px #ffffff30, inset 0 -6px 12px #000;
+    padding: 4.5%;
+  }
+  .watch::before, .watch::after { /* side buttons */
+    content:""; position:absolute; right:-2.4%; width:4%; height:9%; border-radius:6px;
+    background:linear-gradient(90deg,#15171a,#4b5056); box-shadow:inset 0 1px 1px #fff3;
+  }
+  .watch::before { top:28%; } .watch::after { top:63%; }
+  .screen { width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden; background:#000;
+            box-shadow: inset 0 0 0 2px #000, 0 0 0 3px #26292d; }
+  .screen svg { display:block; width:100%; height:100%; }
+
+  /* ---------- prototype ---------- */
+  .proto { display:grid; grid-template-columns: 460px 1fr; gap:48px; padding:20px 48px; align-items:center; }
+  .proto .watch { width:440px; }
+  .controls { display:flex; flex-direction:column; gap:18px; max-width:520px; }
+  .panel { border:1px solid #1e3a1b; background:#0a120b; border-radius:14px; padding:16px 18px; }
+  .panel h3 { margin:0 0 10px; font-family:Orbitron; font-size:12px; letter-spacing:.2em; color:#7dff4a; }
+  .panel p { margin:6px 0 0; font-size:13px; color:#7c9a76; line-height:1.45; }
+  input[type=range] { width:100%; accent-color:#5dff2a; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  button { font-family:Orbitron; font-size:11px; letter-spacing:.14em; padding:10px 14px; border-radius:999px;
+           background:#0f2410; color:#9dff7a; border:1px solid #2d6b22; cursor:pointer; }
+  button:hover { background:#173a17; }
+  button.hot { background:#5dff2a; color:#031a02; border-color:#5dff2a; font-weight:700; }
+  .state-pill { font-family:Orbitron; font-size:12px; letter-spacing:.16em; }
+  .kbd { font-family:Orbitron; font-size:10px; border:1px solid #2d6b22; padding:2px 6px; border-radius:4px; color:#9dff7a; }
+
+  /* ---------- gallery ---------- */
+  .gallery { display:grid; grid-template-columns: repeat(auto-fill, minmax(270px,1fr)); gap:36px 28px; padding:20px 48px 30px; }
+  .card .watch { width:250px; margin:0 auto; }
+  .card h4 { font-family:Orbitron; font-size:12px; letter-spacing:.16em; margin:18px 0 4px; color:#b6ff8f; text-align:center; }
+  .card p { font-size:13px; color:#7c9a76; text-align:center; margin:0 10px; line-height:1.4; }
+
+  .story { display:flex; gap:18px; padding:16px 48px 70px; overflow-x:auto; align-items:flex-start; }
+  .story .frame { flex:0 0 180px; text-align:center; }
+  .story .watch { width:170px; margin:0 auto; }
+  .story .n { font-family:Orbitron; color:#5dff2a; font-size:11px; letter-spacing:.2em; margin-top:12px; }
+  .story p { font-size:12px; color:#7c9a76; margin:4px 0 0; line-height:1.35; }
+  .arrow { align-self:center; color:#2d6b22; font-size:26px; flex:0 0 auto; margin-top:-40px; }
+
+  /* ---------- svg animation ---------- */
+  .spin-slow { transform-origin:240px 240px; animation:spin 40s linear infinite; }
+  .spin-rev  { transform-origin:240px 240px; animation:spin 60s linear infinite reverse; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .breathe { animation:breathe 3.2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { opacity:.45; } 50% { opacity:1; } }
+  .blink { animation:blink 1s steps(2,end) infinite; }
+  @keyframes blink { 50% { opacity:.15; } }
+  .flicker { animation:flicker 4s linear infinite; }
+  @keyframes flicker { 0%,100%{opacity:1} 41%{opacity:1} 42%{opacity:.55} 43%{opacity:1} 77%{opacity:1} 78%{opacity:.7} 79%{opacity:1} }
+  .sheen { animation:sheen 3.5s ease-in-out infinite; }
+  @keyframes sheen { 0% { transform:translateX(-340px) rotate(25deg); } 60%,100% { transform:translateX(340px) rotate(25deg); } }
+  .scan { animation:scan 2.6s linear infinite; }
+  @keyframes scan { from { transform:translateY(-160px); } to { transform:translateY(160px); } }
+  .ecg { animation:ecg 2.4s linear infinite; }
+  @keyframes ecg { to { transform:translateX(-120px); } }
+  .pop { transform-origin:240px 240px; animation:pop .35s cubic-bezier(.2,1.6,.4,1) both; }
+  @keyframes pop { from { transform:scale(.86); } to { transform:scale(1); } }
+  .holo { animation:holo 2.2s ease-in-out infinite; }
+  @keyframes holo { 0%,100% { opacity:.85; } 50% { opacity:1; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>OMNITRIX&nbsp;OS<small>A BEN 10 WATCH EXPERIENCE · GALAXY WATCH8 44MM · 480 × 480 SUPER AMOLED</small></h1>
+</header>
+<p class="lede">An interactive prototype of the whole system: the face, the dial that pops up to pick an alien, the slam to transform, the timeout, and the four energy states that follow your battery. Everything below is rendered at the watch's real 480 px resolution and scaled down.</p>
+
+<h2>01 · Live prototype</h2>
+<section class="proto">
+  <div class="watch"><div class="screen" id="live"></div></div>
+  <div class="controls">
+    <div class="panel">
+      <h3>BATTERY / ENERGY CORE</h3>
+      <input type="range" id="bat" min="1" max="100" value="64">
+      <div class="row" style="justify-content:space-between;margin-top:6px">
+        <span class="state-pill" id="batLabel">64%</span><span class="state-pill" id="stateLabel">OMNITRIX · STANDARD</span>
+      </div>
+      <p>Above 90% the face unlocks <b>Master Control</b>. Between 20 and 90 it runs the classic <b>green</b> Omnitrix. Below 20 it goes into <b>red recharge</b>, the way the watch looks when it times out and Ben turns back.</p>
+    </div>
+    <div class="panel">
+      <h3>INTERACT</h3>
+      <div class="row">
+        <button id="bDial">TAP CORE ▲ (DIAL UP)</button>
+        <button id="bPrev">◀ PREV</button>
+        <button id="bNext">NEXT ▶</button>
+        <button class="hot" id="bSlam">SLAM ● TRANSFORM</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="bHR">♥ BIO-SCAN</button>
+        <button id="bAOD">AMBIENT</button>
+        <button id="bHome">HOME</button>
+        <button id="bRevert">REVERT TO HUMAN</button>
+      </div>
+      <p>Click the watch face to raise the dial. While it's up, scroll the mouse wheel (the watch's touch bezel) to cycle aliens, then click the centre to slam it. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
+    </div>
+    <div class="panel">
+      <h3>SOUND</h3>
+      <div class="row"><button id="bSound">🔇 SOUND OFF</button></div>
+      <p>Synthesized cues: dial-up chirp, selector clicks, the transform whoosh and the four-beep timeout. On the watch these go with haptic patterns.</p>
+    </div>
+  </div>
+</section>
+
+<h2>02 · Screen system</h2>
+<div class="gallery" id="gallery"></div>
+
+<h2>03 · Transformation sequence</h2>
+<div class="story" id="story"></div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+const THEMES = {
+  green:  { label:'OMNITRIX',        c1:'#c8ff8a', c2:'#46e01e', c3:'#147a08', glow:'#4dff1f', ringA:'#3a403c', ringB:'#15181a', plate:'#0d110e', wedge:'#050805', ink:'#062a02', text:'#8aff52', slit:'#5dff2a' },
+  master: { label:'MASTER CONTROL',  c1:'#fbffd0', c2:'#9dff2e', c3:'#0f9a3c', glow:'#c4ff3a', ringA:'#e6d389', ringB:'#5a4a1c', plate:'#0e100a', wedge:'#040604', ink:'#0a2a02', text:'#d6ff6a', slit:'#f4ff9a' },
+  red:    { label:'RECHARGING',      c1:'#ff9a8a', c2:'#ff2a1e', c3:'#6e0000', glow:'#ff2a1a', ringA:'#3d2a2a', ringB:'#140c0c', plate:'#100909', wedge:'#070303', ink:'#2a0202', text:'#ff5a46', slit:'#ff3a2a' },
+  alien:  { label:'ALIEN FORM',      c1:'#ffffff', c2:'#f1fff0', c3:'#b9dcb2', glow:'#e2ffd8', ringA:'#ffffff', ringB:'#9aa29a', plate:'#0b0d0b', wedge:'#060806', ink:'#0d3008', text:'#9bff66', slit:'#9bff66' },
+};
+
+// Emblems are original glyphs drawn in a 100×100 box (not official artwork).
+// Each alien doubles as an app shortcut.
+const ALIENS = [
+  { name:'HEATBLAST',   fn:'Flashlight',     g:`<path d="M50 6C60 26 80 36 74 62C70 80 60 92 50 94C40 92 28 82 26 64C24 48 36 42 38 26C45 38 47 46 52 48C57 34 55 20 50 6Z"/><path d="M50 58C56 66 60 72 56 82C54 86 46 86 44 82C40 74 46 66 50 58Z" fill="#000" opacity=".55"/>` },
+  { name:'XLR8',        fn:'Stopwatch',      g:`<path d="M10 26L38 50L10 74H24L52 50L24 26Z"/><path d="M42 26L70 50L42 74H56L84 50L56 26Z"/><rect x="84" y="44" width="10" height="12" rx="2"/>` },
+  { name:'FOUR ARMS',   fn:'Workout',        g:`<circle cx="50" cy="20" r="11"/><rect x="36" y="34" width="28" height="44" rx="8"/><rect x="8" y="34" width="26" height="9" rx="4"/><rect x="66" y="34" width="26" height="9" rx="4"/><rect x="10" y="52" width="24" height="9" rx="4"/><rect x="66" y="52" width="24" height="9" rx="4"/><rect x="38" y="78" width="9" height="18" rx="3"/><rect x="53" y="78" width="9" height="18" rx="3"/>` },
+  { name:'GREY MATTER', fn:'Calculator',     g:`<ellipse cx="50" cy="44" rx="34" ry="30"/><ellipse cx="36" cy="46" rx="9" ry="12" fill="#000"/><ellipse cx="64" cy="46" rx="9" ry="12" fill="#000"/><rect x="40" y="72" width="20" height="22" rx="6"/>` },
+  { name:'DIAMONDHEAD', fn:'Brightness',     g:`<path d="M50 4L76 30L64 94H36L24 30Z"/><path d="M50 4L50 94M24 30H76M36 94L50 30L64 94" stroke="#000" stroke-width="3" fill="none" opacity=".55"/>` },
+  { name:'RIPJAWS',     fn:'Water lock',     g:`<path d="M14 58C30 30 60 18 86 26C72 36 66 44 64 56C76 54 84 58 90 66C64 76 34 78 14 58Z"/><circle cx="72" cy="38" r="4" fill="#000"/><path d="M6 86C16 80 26 80 36 86S56 92 66 86S86 80 94 86" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'UPGRADE',     fn:'Settings',       g:`<circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="50" cy="50" r="15"/><circle cx="50" cy="50" r="6" fill="#000"/><path d="M50 10V30M50 70V90M10 50H30M70 50H90" stroke="currentColor" stroke-width="5"/>` },
+  { name:'GHOSTFREAK',  fn:'Do Not Disturb', g:`<path d="M20 92V44C20 22 34 8 50 8S80 22 80 44V92L70 82L60 92L50 82L40 92L30 82Z"/><circle cx="50" cy="40" r="13" fill="#000"/><circle cx="50" cy="40" r="5"/>` },
+  { name:'STINKFLY',    fn:'Weather',        g:`<ellipse cx="50" cy="56" rx="10" ry="30"/><ellipse cx="24" cy="38" rx="20" ry="9" transform="rotate(-25 24 38)" opacity=".8"/><ellipse cx="76" cy="38" rx="20" ry="9" transform="rotate(25 76 38)" opacity=".8"/><ellipse cx="26" cy="62" rx="16" ry="7" transform="rotate(20 26 62)" opacity=".6"/><ellipse cx="74" cy="62" rx="16" ry="7" transform="rotate(-20 74 62)" opacity=".6"/><circle cx="40" cy="14" r="7"/><circle cx="60" cy="14" r="7"/>` },
+  { name:'WILDMUTT',    fn:'Find my phone',  g:`<path d="M20 70C20 46 34 34 50 34S80 46 80 70L70 62L62 74L50 64L38 74L30 62Z"/><path d="M28 24C36 14 64 14 72 24M18 14C32 0 68 0 82 14" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'CANNONBOLT',  fn:'Steps',          g:`<circle cx="50" cy="50" r="42"/><path d="M14 40C34 30 66 30 86 40M10 58C32 50 68 50 90 58M30 14C26 38 26 62 30 86M70 14C74 38 74 62 70 86" stroke="#000" stroke-width="4" fill="none" opacity=".6"/>` },
+  { name:'ECHO ECHO',   fn:'Music',          g:`<rect x="34" y="30" width="32" height="40" rx="10"/><circle cx="50" cy="50" r="7" fill="#000"/><path d="M24 36C18 44 18 56 24 64M76 36C82 44 82 56 76 64M14 28C4 42 4 58 14 72M86 28C96 42 96 58 86 72" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'CLOCKWORK',   fn:'Timer',          g:`<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="9"/><path d="M50 50V30M50 50L64 58" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>${[0,45,90,135,180,225,270,315].map(a=>`<rect x="45" y="6" width="10" height="12" rx="2" transform="rotate(${a} 50 50)"/>`).join('')}` },
+];
+
+const HR_ZONES = [
+  { max:99,  name:'GREY MATTER',  tag:'CALM'      },
+  { max:119, name:'DIAMONDHEAD',  tag:'STEADY'    },
+  { max:139, name:'FOUR ARMS',    tag:'STRENGTH'  },
+  { max:159, name:'HEATBLAST',    tag:'BURN'      },
+  { max:999, name:'XLR8',         tag:'MAX SPEED' },
+];
+
+/* =========================================================
+   SVG HELPERS
+   ========================================================= */
+let UID = 0;
+const pad = n => String(n).padStart(2,'0');
+const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const polar = (r, deg) => { const a=(deg-90)*Math.PI/180; return [240+r*Math.cos(a), 240+r*Math.sin(a)]; };
+function arc(r, a0, a1) {
+  const [x0,y0]=polar(r,a0), [x1,y1]=polar(r,a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1-a0>180?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+const emblem = (a, x, y, size, color, extra='') =>
+  `<g transform="translate(${x-size/2} ${y-size/2}) scale(${size/100})" fill="${color}" color="${color}" ${extra}>${a.g}</g>`;
+const themeFor = b => b > 90 ? 'master' : b < 20 ? 'red' : 'green';
+
+function defs(t, id) {
+  return `<defs>
+    <radialGradient id="core${id}" cx="50%" cy="34%" r="70%">
+      <stop offset="0" stop-color="${t.c1}"/><stop offset=".5" stop-color="${t.c2}"/><stop offset="1" stop-color="${t.c3}"/>
+    </radialGradient>
+    <radialGradient id="plate${id}" cx="50%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#2a302c"/><stop offset=".6" stop-color="${t.plate}"/><stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <linearGradient id="ring${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${t.ringA}"/><stop offset=".5" stop-color="${t.ringB}"/><stop offset="1" stop-color="${t.ringA}"/>
+    </linearGradient>
+    <clipPath id="clip${id}"><circle cx="240" cy="240" r="150"/></clipPath>
+    <filter id="glow${id}" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="blur${id}"><feGaussianBlur stdDeviation="14"/></filter>
+    <path id="arcB${id}" d="${arc(170, 120, 240).replace(/A/, 'A')}" />
+    <path id="arcBot${id}" d="M${polar(172,242)[0]} ${polar(172,242)[1]}A172 172 0 0 0 ${polar(172,118)[0]} ${polar(172,118)[1]}"/>
+    <path id="arcTop${id}" d="${arc(172, -62, 62)}"/>
+  </defs>`;
+}
+
+// bezel: metal ring, 4 energy slits (one per battery quarter), seconds track
+function bezel(t, id, o) {
+  const lit = Math.ceil(o.battery / 25);
+  let s = `<circle cx="240" cy="240" r="240" fill="#000"/>
+    <circle cx="240" cy="240" r="226" fill="none" stroke="url(#ring${id})" stroke-width="26"/>
+    <circle cx="240" cy="240" r="213" fill="none" stroke="#000" stroke-width="2" opacity=".7"/>`;
+  [45,135,225,315].forEach((a,i) => {
+    // light order: bottom-left → top-left → top-right → bottom-right
+    const order = [2,3,0,1][i]; const on = order < lit;
+    s += `<g transform="rotate(${a} 240 240)">
+      <rect x="230" y="2" width="20" height="24" rx="5" fill="#000"/>
+      <rect x="233" y="5" width="14" height="18" rx="3" fill="${on ? t.slit : '#1a1d1b'}" ${on ? `filter="url(#glow${id})"` : ''} class="${on && o.theme==='red' ? 'blink' : ''}"/>
+    </g>`;
+  });
+  // seconds track
+  const sec = o.time.getSeconds();
+  for (let i = 0; i < 60; i++) {
+    const big = i % 5 === 0;
+    const [x0,y0] = polar(big ? 196 : 200, i*6), [x1,y1] = polar(207, i*6);
+    const on = o.countdown == null ? i <= sec : i < Math.round(o.countdown*60);
+    s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${on ? t.text : '#1f2620'}" stroke-width="${big?3:2}" stroke-linecap="round" opacity="${on?1:.9}"/>`;
+  }
+  return s;
+}
+
+function hourglass(t, id, o) {
+  return `
+    <circle cx="240" cy="240" r="188" fill="url(#plate${id})" stroke="#000" stroke-width="3"/>
+    ${[0,90,180,270].map(a=>`<rect x="236" y="56" width="8" height="18" rx="3" fill="#000" transform="rotate(${a} 240 240)" opacity=".8"/>`).join('')}
+    <circle cx="240" cy="240" r="160" fill="${t.glow}" opacity="${o.theme==='alien'?.35:.45}" filter="url(#blur${id})" class="${o.theme==='red'?'breathe':''}"/>
+    <g class="${o.theme==='red'?'flicker':''}">
+      <circle cx="240" cy="240" r="150" fill="url(#core${id})"/>
+      <g clip-path="url(#clip${id})">
+        ${o.theme==='master' ? `<rect x="200" y="40" width="60" height="400" fill="#fff" opacity=".35" class="sheen"/>` : ''}
+        ${o.theme==='red' ? `<rect x="80" y="230" width="320" height="20" fill="#fff" opacity=".12" class="scan"/>` : ''}
+        <polygon points="226,240 104,30 60,30 60,450 104,450" fill="${t.wedge}"/>
+        <polygon points="254,240 376,30 420,30 420,450 376,450" fill="${t.wedge}"/>
+        <ellipse cx="240" cy="150" rx="70" ry="22" fill="#fff" opacity=".28"/>
+      </g>
+      <circle cx="240" cy="240" r="150" fill="none" stroke="#000" stroke-width="5"/>
+      <circle cx="240" cy="240" r="146" fill="none" stroke="#fff" stroke-width="1" opacity=".18"/>
+    </g>`;
+}
+
+function faceSVG(o) {
+  const id = ++UID, t = THEMES[o.theme], d = o.time;
+  const h = o.h24 ? d.getHours() : (d.getHours() % 12 || 12);
+  const curved = (pathId, txt, color, size=13, spacing=4) =>
+    `<text font-family="Orbitron" font-weight="700" font-size="${size}" letter-spacing="${spacing}" fill="${color}"><textPath href="#${pathId}${id}" startOffset="50%" text-anchor="middle">${txt}</textPath></text>`;
+
+  let top, bottom;
+  if (o.theme === 'alien') {
+    const a = ALIENS[o.alien];
+    top = emblem(a, 240, 132, 46, t.ink) +
+          `<text x="240" y="186" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="13" letter-spacing="2" fill="${t.ink}">${a.name}</text>`;
+  } else {
+    top = `<text x="240" y="134" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="20" letter-spacing="2" fill="${t.ink}">${DAYS[d.getDay()]} ${pad(d.getDate())}</text>
+           <text x="240" y="170" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="${t.ink}" opacity=".8">⚡${o.battery}%</text>`;
+  }
+  bottom = `
+    <g transform="translate(240 336)">
+      <path d="M0 8C-4 2-14 -4-14-12C-14-18-9-22-4-22C-1-22 0-20 0-18C0-20 1-22 4-22C9-22 14-18 14-12C14-4 4 2 0 8Z" transform="translate(-34 -2) scale(.8)" fill="${t.ink}" class="hb${id}"/>
+      <text x="12" y="6" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="28" fill="${t.ink}">${o.hr}</text>
+    </g>
+    <text x="240" y="366" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="3" fill="${t.ink}" opacity=".8">BPM</text>`;
+
+  const extras = [];
+  if (o.theme === 'master') {
+    // orbiting roster — every alien unlocked
+    extras.push(`<g class="spin-slow" opacity=".9">${ALIENS.map((a,i)=>{const [x,y]=polar(170, i*360/ALIENS.length); return emblem(a,x,y,14,t.slit);}).join('')}</g>`);
+  }
+  if (o.theme === 'alien' && o.countdown != null) {
+    extras.push(`<path d="${arc(226, 0, Math.max(.5, o.countdown*359.9))}" fill="none" stroke="${t.text}" stroke-width="6" stroke-linecap="round" filter="url(#glow${id})"/>`);
+  }
+
+  const beat = (60 / o.hr).toFixed(2);
+  return `<svg viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+    ${defs(t,id)}
+    <style>.hb${id}{transform-box:fill-box;transform-origin:center;animation:hb${id} ${beat}s ease-out infinite}@keyframes hb${id}{0%{transform:translate(-34px,-2px) scale(.8)}15%{transform:translate(-34px,-2px) scale(1)}35%{transform:translate(-34px,-2px) scale(.8)}}</style>
+    ${bezel(t,id,o)}
+    ${hourglass(t,id,o)}
+    ${o.theme!=='master' ? curved('arcTop', t.label === 'ALIEN FORM' ? 'ALIEN FORM' : 'OMNITRIX', t.text, 11, 5) : curved('arcTop', 'MASTER CONTROL', t.slit, 11, 4)}
+    ${extras.join('')}
+    ${o.theme==='alien' && o.countdown!=null ? curved('arcBot', `${pad(Math.floor(o.remaining/60))}:${pad(Math.floor(o.remaining%60))} REMAINING`, t.text, 12, 3)
+      : o.theme==='red' ? `<g class="blink">${curved('arcBot', '▲ ENERGY LOW · RECHARGING', t.text, 12, 2)}</g>`
+      : o.theme==='master' ? '' : curved('arcBot', `${o.steps.toLocaleString()} STEPS`, '#4f7a45', 11, 3)}
+    <text x="166" y="260" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="54" fill="${t.text}" filter="url(#glow${id})">${pad(h)}</text>
+    <text x="314" y="260" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="54" fill="${t.text}" filter="url(#glow${id})">${pad(d.getMinutes())}</text>
+    <circle cx="240" cy="240" r="4" fill="${t.wedge}" class="blink"/>
+    ${top}${bottom}
+  </svg>`;
+}
+
+function selectorSVG(o) {
+  const id = ++UID, t = THEMES[o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green'];
+  const a = ALIENS[o.alien];
+  const n = ALIENS.length;
+  let ring = '';
+  for (let k = -3; k <= 3; k++) {
+    const i = (o.alien + k + n) % n, ang = k * 26;
+    const [x,y] = polar(206, ang);
+    const sel = k === 0;
+    ring += `<circle cx="${x}" cy="${y}" r="${sel?24:17}" fill="#000" stroke="${sel?t.text:'#2a3a28'}" stroke-width="${sel?3:2}" ${sel?`filter="url(#glow${id})"`:''}/>` +
+            emblem(ALIENS[i], x, y, sel?30:20, sel?t.text:'#4c6e44');
+  }
+  const locked = o.theme === 'red';
+  return `<svg viewBox="0 0 480 480">
+    ${defs(t,id)}
+    <circle cx="240" cy="240" r="240" fill="#000"/>
+    <circle cx="240" cy="240" r="226" fill="none" stroke="url(#ring${id})" stroke-width="26" opacity=".55"/>
+    ${ring}
+    <g class="pop">
+      <circle cx="240" cy="240" r="176" fill="#000" stroke="${t.text}" stroke-width="2" opacity=".9"/>
+      <circle cx="240" cy="240" r="168" fill="none" stroke="${t.text}" stroke-width="1" stroke-dasharray="2 6" opacity=".6" class="spin-rev"/>
+      <!-- hourglass outline: the raised core in selection mode -->
+      <g clip-path="url(#clip${id})" opacity=".55">
+        <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${t.text}" stroke-width="2"/>
+        <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${t.text}" stroke-width="2"/>
+      </g>
+      <circle cx="240" cy="240" r="150" fill="none" stroke="${t.text}" stroke-width="3" filter="url(#glow${id})"/>
+      <circle cx="240" cy="226" r="80" fill="${t.glow}" opacity=".22" filter="url(#blur${id})"/>
+      <g class="holo">${emblem(a, 240, 224, 128, locked ? '#5a1d18' : t.text, `filter="url(#glow${id})"`)}</g>
+      <g clip-path="url(#clip${id})"><rect x="90" y="240" width="300" height="3" fill="${t.text}" opacity=".5" class="scan" style="transform-origin:center"/></g>
+      <text x="240" y="330" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="24" letter-spacing="3" fill="${locked ? '#ff5a46' : t.text}">${a.name}</text>
+      <text x="240" y="352" text-anchor="middle" font-family="Chakra Petch" font-weight="600" font-size="14" letter-spacing="3" fill="#6f9a66">${locked ? 'NO ENERGY · LOCKED' : a.fn.toUpperCase()}</text>
+      <text x="240" y="118" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="16" fill="#6f9a66">${pad(o.time.getHours()%12||12)}:${pad(o.time.getMinutes())}</text>
+      <text x="240" y="384" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="3" fill="${t.text}" class="breathe">${locked ? 'CHARGE TO UNLOCK' : 'PRESS TO TRANSFORM'}</text>
+    </g>
+  </svg>`;
+}
+
+function hrSVG(o) {
+  const id = ++UID, t = THEMES.green;
+  const z = HR_ZONES.find(z => o.hr <= z.max);
+  const zi = HR_ZONES.indexOf(z);
+  const beat = 'l18 0 l6 -6 l6 6 l8 0 l4 8 l6 -54 l6 62 l4 -16 l10 0 l8 -12 l8 12 l36 0';
+  let ecg = 'M0 0'; for (let i = 0; i < 6; i++) ecg += beat;
+  // gauge 40..200 bpm mapped to -130..130 deg
+  const ang = v => -130 + (Math.min(200, Math.max(40, v)) - 40) / 160 * 260;
+  const zoneCols = ['#2f8f2a','#4fcf2a','#9dff2e','#ffb02e','#ff4a2e'];
+  const bounds = [40,100,120,140,160,200];
+  let gauge = '';
+  for (let i = 0; i < 5; i++) gauge += `<path d="${arc(212, ang(bounds[i])+1, ang(bounds[i+1])-1)}" stroke="${zoneCols[i]}" stroke-width="${i===zi?16:9}" fill="none" opacity="${i===zi?1:.45}" ${i===zi?`filter="url(#glow${id})"`:''}/>`;
+  const [nx,ny] = polar(212, ang(o.hr));
+  const beatDur = (60 / o.hr).toFixed(2);
+  return `<svg viewBox="0 0 480 480">
+    ${defs(t,id)}
+    <clipPath id="ecgc${id}"><circle cx="240" cy="240" r="186"/></clipPath>
+    <circle cx="240" cy="240" r="240" fill="#000"/>
+    ${gauge}
+    <circle cx="${nx}" cy="${ny}" r="11" fill="#fff" stroke="#000" stroke-width="3"/>
+    <text x="${polar(184,-128)[0]}" y="${polar(184,-128)[1]}" font-family="Orbitron" font-size="11" fill="#4f7a45" text-anchor="middle">40</text>
+    <text x="${polar(184,128)[0]}" y="${polar(184,128)[1]}" font-family="Orbitron" font-size="11" fill="#4f7a45" text-anchor="middle">200</text>
+    <!-- DNA helix backdrop -->
+    <g opacity=".22" clip-path="url(#ecgc${id})">
+      ${Array.from({length:22},(_,i)=>{const y=40+i*19, s=Math.sin(i*.6)*90; return `<line x1="${240-s}" y1="${y}" x2="${240+s}" y2="${y}" stroke="${t.text}" stroke-width="2"/><circle cx="${240-s}" cy="${y}" r="4" fill="${t.text}"/><circle cx="${240+s}" cy="${y}" r="4" fill="${t.text}"/>`;}).join('')}
+    </g>
+    <!-- pulsing omnitrix core as the heart -->
+    <g style="transform-origin:240px 118px;animation:hrp${id} ${beatDur}s ease-out infinite">
+      <circle cx="240" cy="118" r="34" fill="${t.glow}" opacity=".35" filter="url(#blur${id})"/>
+      <circle cx="240" cy="118" r="28" fill="url(#core${id})" stroke="#000" stroke-width="3"/>
+      <polygon points="237,118 222,90 212,90 212,146 222,146" fill="#050805"/>
+      <polygon points="243,118 258,90 268,90 268,146 258,146" fill="#050805"/>
+    </g>
+    <style>@keyframes hrp${id}{0%{transform:scale(1)}12%{transform:scale(1.14)}30%{transform:scale(1)}}</style>
+    <text x="240" y="176" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="12" letter-spacing="5" fill="#6f9a66">BIO-SCAN</text>
+    <g clip-path="url(#ecgc${id})">
+      <g transform="translate(0 262)"><path d="${ecg}" class="ecg" fill="none" stroke="${t.text}" stroke-width="3" stroke-linejoin="round" filter="url(#glow${id})"/></g>
+    </g>
+    <text x="240" y="236" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="74" fill="#eaffe0" filter="url(#glow${id})">${o.hr}</text>
+    <text x="240" y="316" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="4" fill="#6f9a66">ZONE ${zi+1} · ${z.tag}</text>
+    ${emblem(ALIENS.find(a=>a.name===z.name), 196, 350, 30, zoneCols[zi])}
+    <text x="216" y="356" font-family="Orbitron" font-weight="900" font-size="15" letter-spacing="2" fill="${zoneCols[zi]}">${z.name}</text>
+    <text x="150" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">MIN</text>
+    <text x="150" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">54</text>
+    <text x="240" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">REST</text>
+    <text x="240" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">61</text>
+    <text x="330" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">MAX</text>
+    <text x="330" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">148</text>
+  </svg>`;
+}
+
+function ambientSVG(o) {
+  const id = ++UID, c = '#3fae22';
+  const h = o.time.getHours() % 12 || 12;
+  return `<svg viewBox="0 0 480 480">
+    ${defs(THEMES.green,id)}
+    <rect width="480" height="480" fill="#000"/>
+    <circle cx="240" cy="240" r="226" fill="none" stroke="#1d2a1b" stroke-width="2"/>
+    <circle cx="240" cy="240" r="150" fill="none" stroke="${c}" stroke-width="2"/>
+    <g clip-path="url(#clip${id})">
+      <polygon points="226,240 104,30 60,30 60,450 104,450" fill="none" stroke="${c}" stroke-width="2"/>
+      <polygon points="254,240 376,30 420,30 420,450 376,450" fill="none" stroke="${c}" stroke-width="2"/>
+    </g>
+    <text x="166" y="260" text-anchor="middle" font-family="Orbitron" font-weight="500" font-size="54" fill="none" stroke="${c}" stroke-width="1.6">${pad(h)}</text>
+    <text x="314" y="260" text-anchor="middle" font-family="Orbitron" font-weight="500" font-size="54" fill="none" stroke="${c}" stroke-width="1.6">${pad(o.time.getMinutes())}</text>
+    <text x="240" y="134" text-anchor="middle" font-family="Orbitron" font-size="18" fill="${c}">${DAYS[o.time.getDay()]} ${pad(o.time.getDate())}</text>
+    <text x="240" y="346" text-anchor="middle" font-family="Orbitron" font-size="20" fill="${c}">♥ ${o.hr}</text>
+  </svg>`;
+}
+
+function flashSVG(color, label) {
+  return `<svg viewBox="0 0 480 480">
+    <defs><radialGradient id="fl"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${color}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
+    <circle cx="240" cy="240" r="240" fill="url(#fl)"/>
+    ${label ? `<text x="240" y="420" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="18" letter-spacing="4" fill="#000">${label}</text>` : ''}
+  </svg>`;
+}
+
+/* =========================================================
+   LIVE PROTOTYPE STATE MACHINE
+   HOME ──tap──▶ SELECT ──slam──▶ (flash) ──▶ ALIEN ──timeout──▶ (red flash) ──▶ HOME
+   ========================================================= */
+const S = { mode:'home', alien:0, battery:64, hr:72, steps:6842, alienUntil:0, alienDur:20, sound:false };
+const live = document.getElementById('live');
+let actx;
+function tone(freq, dur, type='square', when=0, vol=.06) {
+  if (!S.sound) return;
+  actx = actx || new AudioContext();
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, actx.currentTime + when);
+  g.gain.setValueAtTime(vol, actx.currentTime + when);
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + when + dur);
+  o.connect(g).connect(actx.destination); o.start(actx.currentTime + when); o.stop(actx.currentTime + when + dur + .02);
+}
+const sfx = {
+  dial:   () => { tone(520,.08); tone(880,.12,'square',.07); },
+  click:  () => tone(1400,.03,'square',0,.04),
+  slam:   () => { for (let i=0;i<14;i++) tone(200+i*90,.06,'sawtooth',i*.025,.05); tone(90,.5,'sine',.3,.2); },
+  timeout:() => { [0,.35,.7,1.05].forEach(w=>tone(1960,.18,'square',w,.05)); tone(300,.6,'sawtooth',1.4,.06); },
+  locked: () => { tone(160,.25,'sawtooth'); tone(120,.3,'sawtooth',.2); },
+};
+
+function render() {
+  const now = new Date();
+  const theme = themeFor(S.battery);
+  if (S.mode === 'alien' && Date.now() >= S.alienUntil) return timeout();
+  const remaining = Math.max(0, (S.alienUntil - Date.now())/1000);
+  const o = { time:now, battery:S.battery, hr:S.hr, steps:S.steps, alien:S.alien, theme };
+  let html;
+  switch (S.mode) {
+    case 'home':   html = faceSVG(o); break;
+    case 'select': html = selectorSVG(o); break;
+    case 'alien':  html = faceSVG({ ...o, theme:'alien', countdown: remaining / S.alienDur, remaining }); break;
+    case 'hr':     html = hrSVG(o); break;
+    case 'aod':    html = ambientSVG(o); break;
+    default: return;
+  }
+  live.innerHTML = html;
+  const label = { home: THEMES[theme].label, select:'SELECTING DNA', alien:`${ALIENS[S.alien].name} · ALIEN FORM`, hr:'BIO-SCAN', aod:'AMBIENT' }[S.mode];
+  document.getElementById('stateLabel').textContent = label;
+}
+
+function flash(color, label, ms, then) {
+  S.mode = 'flash'; live.innerHTML = flashSVG(color, label);
+  live.animate([{ filter:'brightness(3)' }, { filter:'brightness(1)' }], { duration: ms });
+  setTimeout(then, ms);
+}
+function dialUp() {
+  if (S.mode === 'select') return slam();
+  S.mode = 'select'; sfx.dial(); render();
+}
+function step(d) { if (S.mode !== 'select') return; S.alien = (S.alien + d + ALIENS.length) % ALIENS.length; sfx.click(); render(); }
+function slam() {
+  if (S.mode !== 'select') return dialUp();
+  if (themeFor(S.battery) === 'red') { sfx.locked(); live.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'none'}],{duration:240,iterations:2}); return; }
+  sfx.slam();
+  flash('#5dff2a', ALIENS[S.alien].name + '!', 650, () => { S.mode = 'alien'; S.alienUntil = Date.now() + S.alienDur*1000; render(); });
+}
+function timeout() {
+  sfx.timeout();
+  flash('#ff2a1a', 'TIMED OUT', 900, () => { S.mode = 'home'; render(); });
+}
+
+live.addEventListener('click', e => {
+  if (S.mode === 'alien' || S.mode === 'flash') return;
+  if (S.mode === 'hr' || S.mode === 'aod') { S.mode = 'home'; return render(); }
+  S.mode === 'select' ? slam() : dialUp();
+});
+live.addEventListener('wheel', e => { if (S.mode === 'select') { e.preventDefault(); step(e.deltaY > 0 ? 1 : -1); } }, { passive:false });
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === ' ') { e.preventDefault(); S.mode === 'select' ? slam() : dialUp(); }
+});
+const $ = id => document.getElementById(id);
+$('bDial').onclick = dialUp; $('bNext').onclick = () => step(1); $('bPrev').onclick = () => step(-1); $('bSlam').onclick = slam;
+$('bHR').onclick = () => { S.mode = 'hr'; render(); };
+$('bAOD').onclick = () => { S.mode = 'aod'; render(); };
+$('bHome').onclick = () => { S.mode = 'home'; render(); };
+$('bRevert').onclick = () => { if (S.mode === 'alien') { S.alienUntil = 0; render(); } };
+$('bSound').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? '🔊 SOUND ON' : '🔇 SOUND OFF'; };
+$('bat').oninput = e => { S.battery = +e.target.value; $('batLabel').textContent = S.battery + '%'; if (S.mode !== 'flash') render(); };
+
+setInterval(() => {
+  S.hr = Math.max(58, Math.min(165, S.hr + Math.round((Math.random()-.5)*4)));
+  if (S.mode !== 'flash') render();
+}, 1000);
+
+/* =========================================================
+   GALLERY + STORYBOARD
+   ========================================================= */
+const fixed = new Date(2026, 9, 22, 10, 10, 38);
+const base = { time:fixed, hr:72, steps:6842, alien:0 };
+const cards = [
+  ['STANDARD · 20–90%', 'The classic green Omnitrix. Hours and minutes sit in the black wedges, so the hourglass waist works as the colon. Date and battery go in the top bulb, live BPM in the bottom.', faceSVG({...base, theme:'green', battery:64})],
+  ['MASTER CONTROL · >90%', 'Gold-chrome bezel, all four energy slits lit, the full roster orbiting the dial and a light sweep across the core. Every alien is unlocked with no timeout.', faceSVG({...base, theme:'master', battery:96})],
+  ['RECHARGE · <20%', 'Red core with a flicker, scan line and blinking slit. Transforming is locked; you get a buzz and a shake if you try.', faceSVG({...base, theme:'red', battery:12, hr:68})],
+  ['ALIEN FORM', 'The white badge Ben wears as an alien. The bezel arc and seconds track count down your alien time, and the top bulb shows who you are.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
+  ['DIAL UP · SELECT', 'Tap the core and it "pops up" into a hologram. Swipe the touch bezel to cycle DNA. Each alien also launches a watch tool.', selectorSVG({...base, theme:'green', battery:64, alien:2})],
+  ['SELECT · LOCKED', 'At under 20% the hologram dims to dead red and the dial says it needs a charge.', selectorSVG({...base, theme:'red', battery:12, alien:1})],
+  ['BIO-SCAN · HEART RATE', 'A mini Omnitrix core beats in time with your pulse. A live ECG runs over a DNA helix, and the zone gauge names each zone after an alien.', hrSVG({...base, hr:132})],
+  ['AMBIENT / AOD', 'Outline-only hourglass for always-on. Under 5% of pixels are lit to save the battery.', ambientSVG({...base})],
+];
+$('gallery').innerHTML = cards.map(([h,p,svg]) => `<div class="card"><div class="watch"><div class="screen">${svg}</div></div><h4>${h}</h4><p>${p}</p></div>`).join('');
+
+const frames = [
+  ['01 · IDLE', 'Green face, time and pulse.', faceSVG({...base, theme:'green', battery:64})],
+  ['02 · TAP', 'The core pops up with a "chk-ching" haptic.', selectorSVG({...base, theme:'green', battery:64, alien:0})],
+  ['03 · TWIST', 'Bezel clicks through DNA, one tick per alien.', selectorSVG({...base, theme:'green', battery:64, alien:1})],
+  ['04 · SLAM', 'Press. A green flash floods the screen.', flashSVG('#5dff2a','XLR8!')],
+  ['05 · ALIEN', 'The white badge appears and the timer starts.', faceSVG({...base, theme:'alien', battery:64, alien:1, countdown:.98, remaining:588})],
+  ['06 · TIMEOUT', 'Four beeps, then a red flash.', flashSVG('#ff2a1a','TIMED OUT')],
+  ['07 · RECHARGE', 'Back to human for a cooldown.', faceSVG({...base, theme:'red', battery:64})],
+];
+$('story').innerHTML = frames.map(([n,p,svg],i) => `${i?'<div class="arrow">›</div>':''}<div class="frame"><div class="watch"><div class="screen">${svg}</div></div><div class="n">${n}</div><p>${p}</p></div>`).join('');
+
+render();
+</script>
+</body>
+</html>

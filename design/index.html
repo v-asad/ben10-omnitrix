@@ -114,6 +114,7 @@
         <button id="bDial">TAP CORE ▲ (DIAL UP)</button>
         <button id="bPrev">◀ PREV</button>
         <button id="bNext">NEXT ▶</button>
+        <button id="bInfo">▲ DOSSIER</button>
         <button class="hot" id="bSlam">SLAM ● TRANSFORM</button>
       </div>
       <div class="row" style="margin-top:10px">
@@ -122,7 +123,7 @@
         <button id="bHome">HOME</button>
         <button id="bRevert">REVERT TO HUMAN</button>
       </div>
-      <p>Click the watch face to raise the dial. While it's up, scroll the mouse wheel (the watch's touch bezel) to cycle aliens, then click the centre to slam it. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
+      <p>Click the watch face to raise the dial. While it's up, scroll the mouse wheel (the watch's touch bezel) to cycle aliens, then click the centre to slam it. Swipe up (or <span class="kbd">↑</span>) for the alien's dossier. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
     </div>
     <div class="panel">
       <h3>SOUND</h3>
@@ -416,6 +417,43 @@ function selectorSVG(o) {
   </svg>`;
 }
 
+// Full alien profile: swipe up on the hologram to open, tap to return.
+function dossierSVG(o) {
+  const id = ++UID, th = o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green', t = THEMES[th];
+  const a = ALIENS[o.alien], col = th === 'red' ? '#ff4a3a' : t.text, dim = th === 'red' ? '#a5554a' : '#6f9a66';
+  // stat arcs in the four bezel quadrants
+  const arcs = a.stats.map((v,k) => {
+    const c = [315,45,225,135][k], a0 = c-28, a1 = c+28, fill = a0 + (a1-a0)*v/10;
+    const [lx,ly] = polar(192, c);
+    return `<path d="${arc(218,a0,a1)}" stroke="#16231a" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="${arc(218,a0,Math.max(a0+.5,fill))}" stroke="${col}" stroke-width="10" fill="none" stroke-linecap="round" filter="url(#glow${id})"/>
+      <text x="${lx}" y="${ly-2}" text-anchor="middle" font-family="Orbitron" font-size="9" letter-spacing="1" fill="${dim}">${STAT_LABELS[k]}</text>
+      <text x="${lx}" y="${ly+13}" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="14" fill="${col}">${v}</text>`;
+  }).join('');
+  const label = (x,y,txt) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Orbitron" font-size="9" letter-spacing="3" fill="${dim}">${txt}</text>`;
+  const value = (x,y,txt,size=13) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Chakra Petch" font-weight="700" font-size="${size}" letter-spacing="1" fill="#dff5d6">${txt}</text>`;
+  return `<svg viewBox="0 0 480 480">
+    ${defs(t,id)}
+    ${holoDefs(id, th, col, 240, 124, 66)}
+    <circle cx="240" cy="240" r="240" fill="#000"/>
+    ${arcs}
+    <g ${since('pop', o.enteredAt ?? -1e9)}>
+      <polygon points="212,196 268,196 304,62 176,62" fill="url(#cone${id})"/>
+      <ellipse cx="240" cy="196" rx="30" ry="5" fill="${col}" opacity=".7" filter="url(#glow${id})"/>
+      <g ${anim('holo',2.2)}>${holoArt(a, id, 240, 124, 132, col)}</g>
+      <text x="240" y="232" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="26" letter-spacing="3" fill="${col}" filter="url(#glow${id})">${a.name}</text>
+      ${label(166,256,'SPECIES')}${value(166,273,a.species.toUpperCase(),12)}
+      ${label(314,256,'HOME WORLD')}${value(314,273,a.planet.toUpperCase(),12)}
+      <line x1="240" y1="250" x2="240" y2="278" stroke="#1f3320"/>
+      ${label(240,302,'POWERS')}${value(240,320,a.powers.join(' · '))}
+      ${label(240,346,'WEAKNESS')}${value(240,363,a.weakness.toUpperCase(),12)}
+      <rect x="150" y="377" width="180" height="24" rx="12" fill="none" stroke="${col}" stroke-width="1.5"/>
+      <text x="240" y="393" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="2" fill="${col}">◆ ${a.fn.toUpperCase()}</text>
+      <text x="240" y="424" text-anchor="middle" font-family="Orbitron" font-size="8" letter-spacing="3" fill="${dim}">TAP TO RETURN</text>
+    </g>
+  </svg>`;
+}
+
 function hrSVG(o) {
   const id = ++UID, t = THEMES.green;
   const z = HR_ZONES.find(z => o.hr <= z.max);
@@ -529,12 +567,13 @@ function render() {
     case 'home':   html = faceSVG(o); break;
     case 'select': html = selectorSVG({ ...o, ringRot:S.ringRot, changedAt:S.changedAt, enteredAt:S.enteredAt }); break;
     case 'alien':  html = faceSVG({ ...o, theme:'alien', countdown: remaining / S.alienDur, remaining }); break;
+    case 'dossier': html = dossierSVG({ ...o, enteredAt:S.enteredAt }); break;
     case 'hr':     html = hrSVG(o); break;
     case 'aod':    html = ambientSVG(o); break;
     default: return;
   }
   live.innerHTML = html;
-  const label = { home: THEMES[theme].label, select:'SELECTING DNA', alien:`${ALIENS[S.alien].name} · ALIEN FORM`, hr:'BIO-SCAN', aod:'AMBIENT' }[S.mode];
+  const label = { home: THEMES[theme].label, select:'SELECTING DNA', dossier:`${ALIENS[S.alien].name} · DOSSIER`, alien:`${ALIENS[S.alien].name} · ALIEN FORM`, hr:'BIO-SCAN', aod:'AMBIENT' }[S.mode];
   document.getElementById('stateLabel').textContent = label;
 }
 
@@ -546,6 +585,10 @@ function flash(color, label, ms, then) {
 function dialUp() {
   if (S.mode === 'select') return slam();
   S.mode = 'select'; S.enteredAt = S.changedAt = performance.now(); sfx.dial(); render();
+}
+function openDossier() {
+  if (S.mode !== 'select') return;
+  S.mode = 'dossier'; S.enteredAt = performance.now(); sfx.click(); render();
 }
 function step(d) {
   if (S.mode !== 'select') return;
@@ -580,16 +623,20 @@ function timeout() {
 live.addEventListener('click', e => {
   if (S.mode === 'alien' || S.mode === 'flash') return;
   if (S.mode === 'hr' || S.mode === 'aod') { S.mode = 'home'; return render(); }
+  if (S.mode === 'dossier') { S.mode = 'select'; return render(); }
   S.mode === 'select' ? slam() : dialUp();
 });
 live.addEventListener('wheel', e => { if (S.mode === 'select') { e.preventDefault(); step(e.deltaY > 0 ? 1 : -1); } }, { passive:false });
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') step(1);
   if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowUp' || e.key === 'i') openDossier();
+  if (e.key === 'ArrowDown' && S.mode === 'dossier') { S.mode = 'select'; render(); }
   if (e.key === ' ') { e.preventDefault(); S.mode === 'select' ? slam() : dialUp(); }
 });
 const $ = id => document.getElementById(id);
 $('bDial').onclick = dialUp; $('bNext').onclick = () => step(1); $('bPrev').onclick = () => step(-1); $('bSlam').onclick = slam;
+$('bInfo').onclick = openDossier;
 $('bHR').onclick = () => { S.mode = 'hr'; render(); };
 $('bAOD').onclick = () => { S.mode = 'aod'; render(); };
 $('bHome').onclick = () => { S.mode = 'home'; render(); };
@@ -615,6 +662,7 @@ const cards = [
   ['ALIEN FORM', 'The white badge Ben wears as an alien. The bezel arc and seconds track count down your alien time, and the top bulb shows who you are.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
   ['DIAL UP · SELECT', 'Tap the core and it "pops up" into a hologram. Swipe the touch bezel to cycle DNA. Each alien also launches a watch tool.', selectorSVG({...base, theme:'green', battery:64, alien:2})],
   ['SELECT · LOCKED', 'At under 20% the hologram dims to dead red and the dial says it needs a charge.', selectorSVG({...base, theme:'red', battery:12, alien:1})],
+  ['DNA DOSSIER', 'Swipe up on the hologram for the full profile: species, home world, powers, weakness, and the watch tool it opens. Stat arcs sit in the bezel.', dossierSVG({...base, theme:'green', battery:64, alien:3})],
   ['BIO-SCAN · HEART RATE', 'A mini Omnitrix core beats in time with your pulse. A live ECG runs over a DNA helix, and the zone gauge names each zone after an alien.', hrSVG({...base, hr:132})],
   ['AMBIENT / AOD', 'Outline-only hourglass for always-on. Under 5% of pixels are lit to save the battery.', ambientSVG({...base})],
 ];

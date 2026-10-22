@@ -52,7 +52,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.Energy
 import dev.omnitrix.app.Haptics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
@@ -80,6 +83,7 @@ private const val HOLO_SIZE = 196f
 fun SelectorScreen(
     energy: Energy,
     art: AlienArt,
+    fx: FxCache,
     initialAlien: Int,
     onSelectedChange: (Int) -> Unit,
     onTransform: (Int) -> Unit,
@@ -102,7 +106,13 @@ fun SelectorScreen(
     val spin = loops.animateFloat(0f, 360f, infiniteRepeatable(tween(60_000, easing = LinearEasing)), label = "spin")
 
     LaunchedEffect(Unit) { materialize.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 260f)) }
-    LaunchedEffect(selected) { art.prefetch(selected) }
+    LaunchedEffect(selected) {
+        art.prefetch(selected)
+        // Once the carousel settles, prepare this alien's transformation in the background.
+        delay(220)
+        art.requestFull(selected)
+        withContext(Dispatchers.Default) { fx.warm(selected, energy) }
+    }
 
     fun settle(index: Int) {
         if (index == selected) return
@@ -225,6 +235,7 @@ fun SelectorScreen(
                 .graphicsLayer { translationX = shake.value * scale },
         ) {
             art.version.intValue   // redraw when artwork finishes loading
+            fx.get(selected, energy)?.warmUp(this)   // 1 px pre-compile of the transformation shader
             val pos = position.value
             val t = scan.value
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {

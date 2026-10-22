@@ -19,6 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 import dev.omnitrix.app.ui.AlienFormScreen
 import dev.omnitrix.app.ui.DossierScreen
 import dev.omnitrix.app.ui.SelectorScreen
+import dev.omnitrix.app.ui.FxCache
+import dev.omnitrix.app.ui.TRANSFORM_MS
 import dev.omnitrix.app.ui.TransformationScreen
 import dev.omnitrix.app.ui.rememberAlienArt
 
@@ -54,6 +56,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
     var dossier by remember { mutableStateOf(false) }
     var transformingInto by remember { mutableStateOf(preview) }
     val art = rememberAlienArt()
+    val fx = remember { FxCache() }
 
     LaunchedEffect(Unit) { if (transformation == null && preview == null) Haptics.dialUp(context) }
 
@@ -61,7 +64,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
         val current = transformation
         val into = transformingInto
         when {
-            into != null -> TransformationScreen(into, energy, art, onDone = onDone)
+            into != null -> TransformationScreen(into, energy, art, fx, TRANSFORM_MS, onDone = onDone)
             current != null -> AlienFormScreen(
                 transformation = current,
                 art = art,
@@ -76,6 +79,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
             else -> SelectorScreen(
                 energy = energy,
                 art = art,
+                fx = fx,
                 initialAlien = cursor,
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->

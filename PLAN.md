@@ -213,7 +213,11 @@ The face has to know the app's state. Plan:
 
 1. ✅ **Design sign-off**: this doc + `design/index.html`
 2. ✅ **WFF face v1**: green / master / red themes, time, HR, steps, battery slits, AOD. Built from the prototype art by `tools/build_watchface.py`, passes Google's WFF v4 validator, 3.4 MB active / 1.6 MB ambient. **Next: sideload and live with it for a day** (← we are here)
-3. **Spike**: complication bridge for alien mode (go/no-go → fallback)
+3. ✅ **Spike**: complication bridge for alien mode. **GO**, verified on the Galaxy Watch8:
+   - The face's slot binds to our app's provider automatically, with no user setup.
+   - The face switches to the white badge within about 2 s of transforming, and the system ticks the countdown with no app wake-ups.
+   - Timeout revert by exact alarm works, and tapping the face opens the app.
+   - Gotchas: complication drawing is clipped to the slot's *bounding shape*, so the slot spans the whole face and the whole face is the tap target. The fallback provider must be a supported type, so it's battery, filtered out by `RANGED_VALUE_MAX == 13`. Heart rate tap-through is lost in exchange.
 4. **App v1**: selector, transform flash, alien timer, timeout, cooldown, haptics
 5. **Alien tools**: wire up the 13 shortcuts
 6. **Bio-scan**: live HR, ECG trace, zones

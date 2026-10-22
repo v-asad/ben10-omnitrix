@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the Omnitrix watch face and install it on a watch connected over ADB.
+# Build the Omnitrix app + watch face and install them on a watch connected over ADB.
 #   tools/install_watch.sh            # build + install
 #   tools/install_watch.sh --rebuild  # regenerate artwork from design/ first
 set -euo pipefail
@@ -12,8 +12,8 @@ if [[ "${1:-}" == "--rebuild" ]]; then
   "$PY" tools/build_watchface.py
 fi
 
-(cd android && ./gradlew -q :watchface:assembleDebug)
-APK=android/watchface/build/outputs/apk/debug/watchface-debug.apk
+(cd android && ./gradlew -q :watchface:assembleDebug :app:assembleDebug)
+APKS=(android/app/build/outputs/apk/debug/app-debug.apk android/watchface/build/outputs/apk/debug/watchface-debug.apk)
 
 # After pairing, the watch often shows up twice (manual IP + mDNS auto-connect),
 # which makes plain `adb` refuse with "more than one device". Pick one.
@@ -23,5 +23,6 @@ if [[ -z "$SERIAL" ]]; then
   exit 1
 fi
 echo "Installing on $SERIAL ($("$ADB" -s "$SERIAL" shell getprop ro.product.model | tr -d '\r'))"
-"$ADB" -s "$SERIAL" install -r "$APK"
+# App first: the face's alien slot binds to the app's complication provider.
+for apk in "${APKS[@]}"; do "$ADB" -s "$SERIAL" install -r "$apk"; done
 echo "Installed. Long-press the current face on the watch and pick “Omnitrix”."

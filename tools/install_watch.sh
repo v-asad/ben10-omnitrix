@@ -12,8 +12,8 @@ if [[ "${1:-}" == "--rebuild" ]]; then
   "$PY" tools/build_watchface.py
 fi
 
-(cd android && ./gradlew -q :watchface:assembleDebug :app:assembleDebug)
-APKS=(android/app/build/outputs/apk/debug/app-debug.apk android/watchface/build/outputs/apk/debug/watchface-debug.apk)
+(cd android && ./gradlew -q :watchface:assembleDebug :app:assembleRelease)
+APKS=(android/app/build/outputs/apk/release/app-release.apk android/watchface/build/outputs/apk/debug/watchface-debug.apk)
 
 # After pairing, the watch often shows up twice (manual IP + mDNS auto-connect),
 # which makes plain `adb` refuse with "more than one device". Pick one.

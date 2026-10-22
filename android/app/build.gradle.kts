@@ -16,6 +16,16 @@ android {
         versionName = "0.1.0"
     }
 
+    buildTypes {
+        // Compose runs much faster without debuggable ART; the watch gets this build.
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
     buildFeatures { compose = true }
 
     compileOptions {
@@ -32,4 +42,6 @@ dependencies {
     implementation("androidx.wear.compose:compose-material3:1.5.0")
     implementation("androidx.wear.compose:compose-foundation:1.5.0")
     implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1")
+    // Installs Compose's baseline profiles at install time: AOT-compiled hot paths, smoother first frames.
+    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
 }

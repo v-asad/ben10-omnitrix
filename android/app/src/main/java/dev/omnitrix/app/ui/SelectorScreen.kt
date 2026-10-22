@@ -2,7 +2,6 @@ package dev.omnitrix.app.ui
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -96,7 +95,6 @@ fun SelectorScreen(
     var selected by remember { mutableIntStateOf(initialAlien) }
     val materialize = remember { Animatable(0f) }
     val shake = remember { Animatable(0f) }
-    val flash = remember { Animatable(0f) }
     var transforming by remember { mutableStateOf(false) }
 
     val loops = rememberInfiniteTransition(label = "selector")
@@ -137,8 +135,7 @@ fun SelectorScreen(
         transforming = true
         Haptics.transform(context)
         scope.launch {
-            materialize.animateTo(0f, tween(150))                             // collapse into the projector
-            flash.animateTo(1f, tween(560, easing = FastOutSlowInEasing))     // DNA burst
+            materialize.animateTo(0f, tween(150))     // collapse into the projector, then the transformation plays
             onTransform(selected)
         }
     }
@@ -220,9 +217,6 @@ fun SelectorScreen(
         val statLabels = remember(scale) {
             Aliens.STAT_LABELS.map { measurer.measure(it, orbitron(density, scale, 8f, FontWeight.Bold, Color(0xFF6F9A66), 1f)) }
         }
-        val burst = remember(selected, scale) {
-            measurer.fitted("${alien.name}!", { orbitron(density, scale, it, FontWeight.Black, Color.Black, 2f) }, 30f, 400f, scale)
-        }
         val kit = remember(energy) { SelectorKit(energy) }
 
         Canvas(
@@ -248,14 +242,6 @@ fun SelectorScreen(
             }
             drawCentered(cta, 382f, scale, alpha = 0.55f + 0.45f * abs(sin(t * PI.toFloat())))
 
-            val f = flash.value
-            if (f > 0f) {
-                withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                    drawCircle(kit.burstBrush, radius = 40f + f * 420f, center = CENTER)
-                    drawRect(main, size = Size(VIRTUAL, VIRTUAL), alpha = (f - 0.35f).coerceIn(0f, 1f))
-                }
-                if (f > 0.45f) drawCentered(burst, 222f, scale, alpha = ((f - 0.45f) * 3f).coerceAtMost(1f))
-            }
         }
     }
 }
@@ -277,9 +263,6 @@ private class SelectorKit(val energy: Energy) {
         startY = 0f, endY = 4f, tileMode = TileMode.Repeated,
     )
     val edgeFade = Brush.radialGradient(0.62f to Color.Transparent, 1f to Color.Black, center = HOLO_CENTER, radius = HOLO_RADIUS)
-    val burstBrush = Brush.radialGradient(
-        0f to Color.White, 0.45f to energy.bright, 0.8f to energy.main, 1f to Color.Transparent, center = CENTER, radius = 460f,
-    )
     val ticks = Path().apply {
         for (i in 0 until 60) {
             val a = polar(if (i % 5 == 0) 186f else 189f, i * 6f)

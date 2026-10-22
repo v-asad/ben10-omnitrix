@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import dev.omnitrix.app.ui.AlienFormScreen
 import dev.omnitrix.app.ui.DossierScreen
 import dev.omnitrix.app.ui.SelectorScreen
+import dev.omnitrix.app.ui.TransformationScreen
 import dev.omnitrix.app.ui.rememberAlienArt
 
 /** Tapping the Omnitrix face lands here: the dial pops up. */
@@ -29,30 +30,36 @@ class MainActivity : ComponentActivity() {
         intent.getIntExtra(EXTRA_TRANSFORM, -1).takeIf { it in Aliens.all.indices }?.let { alien ->
             Transformer.transform(this, alien, intent.getIntExtra(EXTRA_SECONDS, 60) * 1000L)
         }
-        setContent { OmnitrixApp(onDone = ::finish) }
+        // Debug hook: --es preview <slug> plays that alien's transformation without transforming.
+        val preview = intent.getStringExtra(EXTRA_PREVIEW)?.let { slug -> Aliens.all.indexOfFirst { it.slug == slug } }?.takeIf { it >= 0 }
+        setContent { OmnitrixApp(preview = preview, onDone = ::finish) }
     }
 
     private companion object {
         const val EXTRA_TRANSFORM = "transform"
         const val EXTRA_SECONDS = "seconds"
+        const val EXTRA_PREVIEW = "preview"
     }
 }
 
 @Composable
-private fun OmnitrixApp(onDone: () -> Unit) {
+private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
     val context = LocalContext.current
     val state = remember { OmnitrixState(context) }
     val energy = remember { Energy.read(context) }
     var transformation by remember { mutableStateOf(state.current()) }
     var cursor by remember { mutableIntStateOf(state.lastAlien) }
     var dossier by remember { mutableStateOf(false) }
+    var transformingInto by remember { mutableStateOf(preview) }
     val art = rememberAlienArt()
 
-    LaunchedEffect(Unit) { if (transformation == null) Haptics.dialUp(context) }
+    LaunchedEffect(Unit) { if (transformation == null && preview == null) Haptics.dialUp(context) }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val current = transformation
+        val into = transformingInto
         when {
+            into != null -> TransformationScreen(into, energy, art, onDone = onDone)
             current != null -> AlienFormScreen(
                 transformation = current,
                 art = art,
@@ -70,8 +77,9 @@ private fun OmnitrixApp(onDone: () -> Unit) {
                 initialAlien = cursor,
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->
+                    // Transform now so the face is already white when the sequence ends.
                     Transformer.transform(context, alien, energy.alienTimeMillis)
-                    onDone()
+                    transformingInto = alien
                 },
                 onOpenDossier = { cursor = it; dossier = true },
             )

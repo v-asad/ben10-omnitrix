@@ -29,6 +29,7 @@ class AlienArt(private val assets: AssetManager) {
     private val icons = arrayOfNulls<ImageBitmap>(Aliens.size)
     private val holos = LruCache<Int, Pair<ImageBitmap?, ImageBitmap?>>(10)
     private val pending = HashSet<Int>()
+    private val fulls = LruCache<Int, ImageBitmap>(3)
 
     /** Read inside draw lambdas to redraw when art arrives. */
     val version = mutableIntStateOf(0)
@@ -57,6 +58,17 @@ class AlienArt(private val assets: AssetManager) {
                     bump()
                 }
             }
+        }
+    }
+
+    /** Full-colour art for the transformation reveal (loaded only when transforming). */
+    fun full(index: Int): ImageBitmap? = fulls.get(index)
+
+    fun requestFull(index: Int) {
+        if (fulls.get(index) != null) return
+        scope.launch {
+            decode("aliens/full/${Aliens.all[index].slug}.png")?.let { fulls.put(index, it) }
+            bump()
         }
     }
 

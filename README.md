@@ -8,7 +8,7 @@ A Ben 10 Omnitrix experience for the **Samsung Galaxy Watch8 (44mm)**. It's more
 
 | Battery | Face |
 |---|---|
-| > 90% | **Master Control**: gold bezel, every alien unlocked, no timeout |
+| > 90% | **Master Control**: gold bezel, orbiting roster, 30-minute alien time |
 | 20–90% | **Omnitrix**: classic green hourglass |
 | < 20% | **Recharge**: red, transforming locked |
 | transformed | **Alien form**: white badge with countdown |

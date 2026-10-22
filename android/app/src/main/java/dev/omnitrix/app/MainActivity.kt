@@ -32,6 +32,8 @@ class MainActivity : ComponentActivity() {
         }
         // Debug hook: --es preview <slug> plays that alien's transformation without transforming.
         val preview = intent.getStringExtra(EXTRA_PREVIEW)?.let { slug -> Aliens.all.indexOfFirst { it.slug == slug } }?.takeIf { it >= 0 }
+        // Cheap insurance: make sure the face holds a live tap target for next time.
+        Transformer.refreshFace(this)
         setContent { OmnitrixApp(preview = preview, onDone = ::finish) }
     }
 

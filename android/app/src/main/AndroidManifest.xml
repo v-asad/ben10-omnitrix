@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name=".OmnitrixApplication"
         android:label="@string/app_name"
         android:icon="@drawable/ic_omnitrix"
         android:theme="@style/Theme.Omnitrix">

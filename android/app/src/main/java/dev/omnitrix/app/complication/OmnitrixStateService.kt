@@ -33,7 +33,7 @@ class OmnitrixStateService : SuspendingComplicationDataSourceService() {
         System.currentTimeMillis().let { now -> build(Transformation(alien = 0, startedAtMillis = now, endsAtMillis = now + 10 * 60_000)) }
 
     private fun build(transformation: Transformation?): ComplicationData {
-        val name = transformation?.let { Aliens.names[it.alien] } ?: "HUMAN"
+        val name = transformation?.let { Aliens.all[it.alien].name } ?: "HUMAN"
         val text = if (transformation == null) {
             PlainComplicationText.Builder("READY").build()
         } else {
@@ -49,7 +49,7 @@ class OmnitrixStateService : SuspendingComplicationDataSourceService() {
         return RangedValueComplicationData.Builder(
             value = (transformation?.alien?.plus(1) ?: 0).toFloat(),
             min = 0f,
-            max = Aliens.names.size.toFloat(),
+            max = Aliens.size.toFloat(),
             contentDescription = PlainComplicationText.Builder("Omnitrix: $name").build(),
         )
             .setText(text)

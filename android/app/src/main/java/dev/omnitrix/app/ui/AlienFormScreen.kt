@@ -40,9 +40,9 @@ private const val HOLD_TO_REVERT_MS = 1200
 
 /** Opened while transformed: the white alien badge, a live countdown ring, hold to revert. */
 @Composable
-fun AlienFormScreen(transformation: Transformation, onRevert: () -> Unit, onExpired: () -> Unit) {
+fun AlienFormScreen(transformation: Transformation, art: AlienArt, onRevert: () -> Unit, onExpired: () -> Unit) {
     val alien = Aliens.all[transformation.alien]
-    val art by rememberEmblemArt()
+    LaunchedEffect(transformation.alien) { art.prefetch(transformation.alien, radius = 0) }
     val scope = rememberCoroutineScope()
     val hold = remember { Animatable(0f) }
 
@@ -76,7 +76,7 @@ fun AlienFormScreen(transformation: Transformation, onRevert: () -> Unit, onExpi
         val scale = min(constraints.maxWidth, constraints.maxHeight) / VIRTUAL
         val measurer = rememberTextMeasurer(cacheSize = 8)
         val name = remember(scale) {
-            measurer.measure(alien.name, orbitron(density, scale, if (alien.name.length > 9) 13f else 15f, FontWeight.Black, INK, 1.5f))
+            measurer.fitted(alien.name, { orbitron(density, scale, it, FontWeight.Black, INK, 1.2f) }, 15f, 112f, scale)
         }
         val secondsLeft = remainingMs / 1000
         val countdown = remember(secondsLeft, scale) {
@@ -102,9 +102,10 @@ fun AlienFormScreen(transformation: Transformation, onRevert: () -> Unit, onExpi
                 drawCircle(kit.core, radius = 176f, center = CENTER)
                 clipPath(kit.coreClip) { drawPath(WEDGES, Color(0xFF060806)) }
                 drawCircle(Color.Black, radius = 176f, center = CENTER, style = Stroke(5f))
-                art?.let {
-                    val (o, s) = emblemDst(Offset(240f, 118f), 96f)
-                    drawImage(it.emblems[transformation.alien], srcSize = EmblemArt.SRC, dstOffset = o, dstSize = s, colorFilter = kit.inkFilter)
+                art.version.intValue   // redraw when the artwork arrives
+                art.holo(transformation.alien)?.let { holo ->
+                    val (o, s) = squareDst(Offset(240f, 112f), 84f)
+                    drawImage(holo, srcSize = holo.srcSize(), dstOffset = o, dstSize = s, colorFilter = kit.inkFilter)
                 }
                 // hold-to-revert charge ring
                 if (hold.value > 0f) {

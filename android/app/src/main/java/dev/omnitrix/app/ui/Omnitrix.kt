@@ -1,15 +1,9 @@
 package dev.omnitrix.app.ui
 
-import android.content.res.Resources
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -18,10 +12,12 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextMeasurer
 import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -39,7 +35,8 @@ val Orbitron = FontFamily(
 
 const val VIRTUAL = 480f
 val CENTER = Offset(240f, 240f)
-val STEP_DEG = 360f / Aliens.size
+/** Angular spacing of the bezel carousel; only a window of the roster is on screen. */
+const val SPACING_DEG = 26f
 
 /** Point on a circle around the face centre; 0° = 12 o'clock, clockwise. */
 fun polar(radius: Float, degrees: Float, center: Offset = CENTER): Offset {
@@ -54,8 +51,18 @@ fun angleOf(p: Offset, c: Offset): Float =
 /** Wraps to -180..180. */
 fun wrap(deg: Float): Float = ((deg % 360f) + 540f) % 360f - 180f
 
-/** Carousel index sitting at 12 o'clock for a ring rotation. */
-fun nearestAlien(ringDeg: Float): Int = Math.floorMod((-ringDeg / STEP_DEG).roundToInt(), Aliens.size)
+/** Roster index nearest to carousel position [pos] (position = fractional index at 12 o'clock). */
+fun nearestAlien(pos: Float): Int = Math.floorMod(pos.roundToInt(), Aliens.size)
+
+/** Signed distance from [pos] to index [i] around the roster ring, in -n/2..n/2. */
+fun ringDistance(i: Int, pos: Float, n: Int = Aliens.size): Float {
+    val d = (i - pos) % n
+    return when {
+        d > n / 2f -> d - n
+        d < -n / 2f -> d + n
+        else -> d
+    }
+}
 
 fun circlePath(center: Offset, radius: Float) = Path().apply { addOval(Rect(center, radius)) }
 
@@ -77,29 +84,23 @@ fun orbitron(density: Density, scale: Float, size: Float, weight: FontWeight, co
         )
     }
 
-class EmblemArt(val emblems: List<ImageBitmap>, val glows: List<ImageBitmap>) {
-    companion object {
-        /** Source PNG canvas (glyph is 160 px centred in 240). */
-        val SRC = IntSize(240, 240)
-    }
-}
-
-/** Decodes all emblem art once, off the main thread; null until ready. */
-@Composable
-fun rememberEmblemArt(): State<EmblemArt?> {
-    val resources: Resources = LocalContext.current.resources
-    return produceState<EmblemArt?>(null) {
-        value = withContext(Dispatchers.Default) {
-            EmblemArt(
-                Aliens.all.map { ImageBitmap.imageResource(resources, it.emblem).also(ImageBitmap::prepareToDraw) },
-                Aliens.all.map { ImageBitmap.imageResource(resources, it.glow).also(ImageBitmap::prepareToDraw) },
-            )
-        }
-    }
-}
-
-/** Integer destination rect (virtual px) for an emblem centred at [center] with side [size]. */
-fun emblemDst(center: Offset, size: Float): Pair<IntOffset, IntSize> {
+/** Integer destination rect (virtual px) for a square image centred at [center] with side [size]. */
+fun squareDst(center: Offset, size: Float): Pair<IntOffset, IntSize> {
     val s = size.roundToInt()
     return IntOffset((center.x - size / 2f).roundToInt(), (center.y - size / 2f).roundToInt()) to IntSize(s, s)
+}
+
+fun ImageBitmap.srcSize() = IntSize(width, height)
+
+/**
+ * Hologram colouring: the plates are pre-baked luminance (tools/build_alien_art.py), so tinting
+ * is a single multiply, far cheaper per frame than a colour matrix.
+ */
+fun hologramFilter(tint: Color): ColorFilter = ColorFilter.tint(tint, BlendMode.Modulate)
+
+/** Measures [text], shrinking the font until it fits [maxWidth] virtual px. */
+fun TextMeasurer.fitted(text: String, style: (Float) -> TextStyle, size: Float, maxWidth: Float, scale: Float): TextLayoutResult {
+    val first = measure(text, style(size))
+    val limit = maxWidth * scale
+    return if (first.size.width <= limit) first else measure(text, style(size * limit / first.size.width * 0.98f))
 }

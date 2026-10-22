@@ -6,7 +6,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -32,9 +32,9 @@ import kotlin.math.min
 
 /** Full alien profile (swipe up on the hologram). Static: draws once, no animation cost. */
 @Composable
-fun DossierScreen(alienIndex: Int, energy: Energy, onClose: () -> Unit) {
+fun DossierScreen(alienIndex: Int, energy: Energy, art: AlienArt, onClose: () -> Unit) {
     val alien: Alien = Aliens.all[alienIndex]
-    val art by rememberEmblemArt()
+    LaunchedEffect(alienIndex) { art.prefetch(alienIndex, radius = 0) }
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -58,7 +58,7 @@ fun DossierScreen(alienIndex: Int, energy: Energy, onClose: () -> Unit) {
                     constraints = Constraints(maxWidth = (width * scale).toInt()))
             val light = Color(0xFFDFF5D6)
             listOf(
-                m(alien.name, 26f, FontWeight.Black, main, 3f) to 216f,
+                measurer.fitted(alien.name, { orbitron(density, scale, it, FontWeight.Black, main, 2.5f) }, 26f, 320f, scale) to 216f,
                 m("SPECIES", 8f, FontWeight.Bold, dim, 2.5f) to 250f,
                 m(alien.species.uppercase(), 11f, FontWeight.Bold, light, 0.5f, 150f) to 262f,
                 m("HOME WORLD", 8f, FontWeight.Bold, dim, 2.5f) to 250f,
@@ -67,7 +67,7 @@ fun DossierScreen(alienIndex: Int, energy: Energy, onClose: () -> Unit) {
                 m(alien.powers.joinToString(" · "), 11f, FontWeight.Bold, light, 0.3f, 330f) to 307f,
                 m("WEAKNESS", 8f, FontWeight.Bold, dim, 2.5f) to 336f,
                 m(alien.weakness.uppercase(), 11f, FontWeight.Bold, light, 0.5f) to 349f,
-                m("◆ ${alien.tool.uppercase()}", 10f, FontWeight.Bold, main, 2f) to 386f,
+                m("◆ ${alien.eraLabel}", 10f, FontWeight.Bold, main, 2f) to 386f,
             )
         }
         val statTexts = remember(scale) {
@@ -77,7 +77,7 @@ fun DossierScreen(alienIndex: Int, energy: Energy, onClose: () -> Unit) {
             }
         }
         val tint = remember(energy) { ColorFilter.tint(main) }
-        val bright = remember(energy) { ColorFilter.tint(energy.bright) }
+        val holoFilter = remember(energy) { hologramFilter(energy.bright) }
         val cone = remember(energy) { Brush.verticalGradient(listOf(main.copy(alpha = 0f), main.copy(alpha = 0.3f)), startY = 60f, endY = 190f) }
 
         Canvas(Modifier.fillMaxSize()) {
@@ -92,11 +92,14 @@ fun DossierScreen(alienIndex: Int, energy: Energy, onClose: () -> Unit) {
                     moveTo(214f, 190f); lineTo(266f, 190f); lineTo(300f, 60f); lineTo(180f, 60f); close()
                 }, cone)
                 drawOval(main, topLeft = Offset(212f, 185f), size = Size(56f, 10f), alpha = 0.7f)
-                art?.let {
-                    val (go, gs) = emblemDst(Offset(240f, 122f), 150f)
-                    drawImage(it.glows[alienIndex], srcSize = EmblemArt.SRC, dstOffset = go, dstSize = gs, alpha = 0.8f, colorFilter = tint)
-                    val (eo, es) = emblemDst(Offset(240f, 122f), 140f)
-                    drawImage(it.emblems[alienIndex], srcSize = EmblemArt.SRC, dstOffset = eo, dstSize = es, colorFilter = bright)
+                art.version.intValue   // redraw when the artwork arrives
+                art.glow(alienIndex)?.let { glow ->
+                    val (go, gs) = squareDst(Offset(240f, 122f), 140f)
+                    drawImage(glow, srcSize = glow.srcSize(), dstOffset = go, dstSize = gs, alpha = 0.8f, colorFilter = tint)
+                }
+                art.holo(alienIndex)?.let { holo ->
+                    val (eo, es) = squareDst(Offset(240f, 122f), 136f)
+                    drawImage(holo, srcSize = holo.srcSize(), dstOffset = eo, dstSize = es, colorFilter = holoFilter)
                 }
                 drawLine(Color(0xFF1F3320), Offset(240f, 248f), Offset(240f, 276f), strokeWidth = 1f)
             }

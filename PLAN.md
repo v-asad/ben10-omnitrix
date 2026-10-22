@@ -218,8 +218,9 @@ The face has to know the app's state. Plan:
    - The face switches to the white badge within about 2 s of transforming, and the system ticks the countdown with no app wake-ups.
    - Timeout revert by exact alarm works, and tapping the face opens the app.
    - Gotchas: complication drawing is clipped to the slot's *bounding shape*, so the slot spans the whole face and the whole face is the tap target. The fallback provider must be a supported type, so it's battery, filtered out by `RANGED_VALUE_MAX == 13`. Heart rate tap-through is lost in exchange.
-4. **App v1**: selector, transform flash, alien timer, timeout, cooldown, haptics
-5. **Alien tools**: wire up the 13 shortcuts
+4. ✅ **App v1 (v0.1.0)**: hologram selector over a 50-alien roster (OS, AF, UA, Ultimates) with real Alien Force-era art, dossier, transform burst, alien timer, timeout, hold to revert, haptics. Released as v0.1.0. The minimal face redesign and the powered-down AOD shipped with it.
+4b. **Next: alien-specific transformation animations** (research + 10 samples for review)
+5. **Alien tools**: wire up shortcuts (deferred: the dossier shows each alien's era for now)
 6. **Bio-scan**: live HR, ECG trace, zones
 7. **Tile + DNA Codex + unlock rules**
 8. **Polish**: sound, transition timing, battery profiling (target: < 3% extra drain/day)

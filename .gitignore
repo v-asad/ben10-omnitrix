@@ -15,3 +15,6 @@ local.properties
 
 # Official alien artwork fetched for personal use (copyrighted, never commit)
 art/
+
+# Generated from art/ by tools/build_alien_art.py (derived from copyrighted art)
+android/*/src/generated/

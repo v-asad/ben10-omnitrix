@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import dev.omnitrix.app.ui.AlienFormScreen
 import dev.omnitrix.app.ui.DossierScreen
 import dev.omnitrix.app.ui.SelectorScreen
+import dev.omnitrix.app.ui.rememberAlienArt
 
 /** Tapping the Omnitrix face lands here: the dial pops up. */
 class MainActivity : ComponentActivity() {
@@ -45,6 +46,7 @@ private fun OmnitrixApp(onDone: () -> Unit) {
     var transformation by remember { mutableStateOf(state.current()) }
     var cursor by remember { mutableIntStateOf(state.lastAlien) }
     var dossier by remember { mutableStateOf(false) }
+    val art = rememberAlienArt()
 
     LaunchedEffect(Unit) { if (transformation == null) Haptics.dialUp(context) }
 
@@ -53,6 +55,7 @@ private fun OmnitrixApp(onDone: () -> Unit) {
         when {
             current != null -> AlienFormScreen(
                 transformation = current,
+                art = art,
                 onRevert = {
                     Transformer.revert(context)
                     Haptics.revert(context)
@@ -60,9 +63,10 @@ private fun OmnitrixApp(onDone: () -> Unit) {
                 },
                 onExpired = { transformation = null },
             )
-            dossier -> DossierScreen(cursor, energy, onClose = { dossier = false })
+            dossier -> DossierScreen(cursor, energy, art, onClose = { dossier = false })
             else -> SelectorScreen(
                 energy = energy,
+                art = art,
                 initialAlien = cursor,
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->

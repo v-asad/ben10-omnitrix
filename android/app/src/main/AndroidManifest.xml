@@ -52,6 +52,10 @@
             android:name=".TimeoutReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".Diagnostics$SampleReceiver"
+            android:exported="false" />
+
         <!-- Keeps the face's tap target alive across app updates and reboots. -->
         <receiver
             android:name=".RefreshReceiver"

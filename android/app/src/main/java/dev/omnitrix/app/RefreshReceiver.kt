@@ -15,6 +15,8 @@ class RefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED || intent.action == Intent.ACTION_BOOT_COMPLETED) {
             Transformer.refreshFace(context)
+            Diagnostics.schedule(context)
+            Diagnostics.log(context, if (intent.action == Intent.ACTION_BOOT_COMPLETED) "boot" else "app_updated", intent.action?.substringAfterLast('.') ?: "")
         }
     }
 }

@@ -1,12 +1,26 @@
 # Changelog
 
-## Unreleased
+## v0.2.0 (2026-10-23)
+
+The transform loop, finished, plus sound and battery diagnostics.
+
+### Added
+- **Transformations for all 50 aliens**: slam flash, green DNA surge, the alien's signature beat while its art is revealed, then the name slam (~1.9 s, tap to skip). There are 27 effect families, each driven by the alien's own colours in `data/aliens.json`: fire (GPU shader), ice, prism and crystal shards, electricity, clones, sound waves, web, rewinding clock, bandages, vines, goo, magnetism, eyes, rolling shell, starfield, radiation, wind, growing, invisibility and more.
+- **Timeout and recharge like the show**: when alien time runs out you get the four beeps and buzzes and turn back to human. The Omnitrix then recharges (2 min by default) with a red face and a countdown, and transforming is locked until the ready chime. Reverting early never costs a recharge.
+- **Sound**: original synthesized cues for the dial-up, carousel ticks, slam, timeout, revert, denied and ready. They play only when the watch is in Sound mode (never on Vibrate or Mute), outside Do Not Disturb, and they follow the watch's system volume.
+- **Omnitrix menu** (swipe down on the selector):
+  - **Settings**: alien time (1–15 min, ×3 in Master Control), recharge length, animations (full / quick / off), haptics (strong / light / off), sound, diagnostics.
+  - **Battery**: current level, drain per hour off the charger, app time and transformations today.
+- **Battery diagnostics**: battery samples every ~15 min (no extra wake-ups) plus app events. Run `tools/battery_report.py start` in the morning and `report` in the evening for a full breakdown that includes Android's per-app power estimates.
+
+### Improved
+- **Smoothness**:
+  - Transformations are prepared off the main thread while you browse, and the fire shader is pre-compiled, so slam-to-transform runs with 1 janky frame in ~137 (it used to stall at launch).
+  - The countdown screen updates without recomposing.
+  - The install script compiles the whole app ahead of time.
 
 ### Fixed
-- Tapping the face did nothing after the app was updated or reinstalled (stale tap link held by the face). The app now refreshes the face after updates, after reboots and whenever it opens.
-
-### Added (experimental, under review)
-- Alien-specific transformation sequences for 10 original-series aliens.
+- Tapping the face did nothing after the app was updated or reinstalled, because the face held a stale tap link. The app now refreshes the face after updates, after reboots and whenever it opens.
 
 ## v0.1.0 (2026-10-23)
 

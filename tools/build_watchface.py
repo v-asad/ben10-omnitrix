@@ -41,6 +41,11 @@ COLORS = {
     "red":    {"text": "#FF5A46", "ink": "#2A0202", "slit": "#FF3A2A", "glow": "#FF2A1A", "dim": "#7A3A35"},
     "alien":  {"text": "#9BFF66", "ink": "#0D3008", "slit": "#9BFF66", "glow": "#4DFF1F", "dim": "#9BFF66"},
 }
+# Always-on palette, mirroring AOD in design/omnitrix.js
+AOD_COLORS = {
+    "green": {"line": "#46C424", "dim": "#0E3A08", "label": "#2A6A1A"},
+    "alien": {"line": "#D6F5CC", "dim": "#26332A", "label": "#7FA878"},
+}
 
 
 # ---------------------------------------------------------------- fonts
@@ -86,9 +91,8 @@ def export_layers():
         jobs[f"slit_{k}"] = (f"layer=slit&k={k}", True)
     jobs["orbit"] = ("layer=orbit", True)
     jobs["warn_red"] = ("layer=warn&theme=red", True)
-    jobs["icon_heart"] = ("layer=heart", True)
-    jobs["icon_bolt"] = ("layer=bolt", True)
     jobs["ambient"] = ("layer=ambient", False)
+    jobs["ambient_alien"] = ("layer=ambient&mode=alien", False)
     jobs["preview"] = ("layer=preview&theme=green", False)
 
     drawable = RES / "drawable-nodpi"
@@ -113,14 +117,16 @@ def export_layers():
 
 
 # ---------------------------------------------------------------- XML
-def image(name, boxes, extra=""):
+def image(name, boxes, extra="", dy=0):
     x, y, w, h = boxes[name]
-    return f'<PartImage x="{x}" y="{y}" width="{w}" height="{h}" {extra}><Image resource="{name}"/></PartImage>'
+    return f'<PartImage x="{x}" y="{y + dy}" width="{w}" height="{h}" {extra}><Image resource="{name}"/></PartImage>'
 
 
 def text(x, y, w, h, template, size, color, family="orbitron_black", align="CENTER",
-         glow=None, spacing=None, name="", upper=False):
+         glow=None, outline=None, spacing=None, name="", upper=False):
     deco = f'<OutGlow color="{glow}" radius="10"/>' if glow else ""
+    if outline:
+        deco += f'<Outline color="{outline}" width="1.2"/>'
     ls = f' letterSpacing="{spacing}"' if spacing is not None else ""
     nm = f' name="{name}"' if name else ""
     # Static strings go straight into <Font>; <Template> requires a <Parameter>.
@@ -132,26 +138,44 @@ def text(x, y, w, h, template, size, color, family="orbitron_black", align="CENT
             f'{deco}{body}</Font></Text></PartText>')
 
 
+def condition(expr, then, otherwise=None):
+    other = f"<Default>{otherwise}</Default>" if otherwise is not None else ""
+    return (f'<Condition><Expressions><Expression name="c">{expr}</Expression></Expressions>'
+            f'<Compare expression="c">{then}</Compare>{other}</Condition>')
+
+
+def time_text(color, **kw):
+    """Small time printed in the top bulb; follows the phone's 12/24h setting."""
+    t12 = text(140, 116, 200, 34, '%s:%s<Parameter expression="[HOUR_1_12_Z]"/><Parameter expression="[MINUTE_Z]"/>', 26, color, **kw)
+    t24 = text(140, 116, 200, 34, '%s:%s<Parameter expression="[HOUR_0_23_Z]"/><Parameter expression="[MINUTE_Z]"/>', 26, color, **kw)
+    return condition("[IS_24_HOUR_MODE] == 1", t24, t12)
+
+
+def date_text(color, **kw):
+    return text(160, 157, 160, 16, '%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/>',
+                11, color, family="orbitron_bold", spacing=0.3, upper=True, **kw)
+
+
+def blink(content):
+    return condition("[SECOND] % 2 == 0", content)
+
+
 def theme_layer(th, boxes):
     c = COLORS[th]
     parts = [image(f"base_{th}", boxes)]
 
-    # Energy slits: one per battery quarter, tinted with the theme colour.
+    # Four energy slits: signature Omnitrix lights (decorative, not a battery gauge).
     for k in range(4):
         slit = image(f"slit_{k}", boxes, f'tintColor="{c["slit"]}"')
-        if th == "red":   # low energy: the slit blinks
-            slit = (f'<Condition><Expressions><Expression name="on">[SECOND] % 2 == 0</Expression></Expressions>'
-                    f'<Compare expression="on">{slit}</Compare></Condition>')
-        parts.append(f'<Condition><Expressions><Expression name="lit">[BATTERY_PERCENT] &gt; {k * 25}</Expression>'
-                     f'</Expressions><Compare expression="lit">{slit}</Compare></Condition>')
+        parts.append(blink(slit) if th == "red" else slit)
 
     # Seconds track: a dashed arc whose dashes land exactly on the 60 ticks.
-    circumference = 2 * 3.14159265 * 203.5
+    circumference = 2 * 3.14159265 * 207
     parts.append(
         f'<PartDraw x="0" y="0" width="480" height="480">'
-        f'<Arc centerX="240" centerY="240" width="407" height="407" startAngle="-0.3" endAngle="360">'
+        f'<Arc centerX="240" centerY="240" width="414" height="414" startAngle="-0.3" endAngle="360">'
         f'<Transform target="endAngle" value="[SECOND] * 6 + 0.9"/>'
-        f'<Stroke color="{c["text"]}" thickness="7" dashIntervals="2 {circumference / 60 - 2:.3f}"/></Arc></PartDraw>')
+        f'<Stroke color="{c["text"]}" thickness="6" dashIntervals="2 {circumference / 60 - 2:.3f}"/></Arc></PartDraw>')
 
     if th == "master":
         x, y, w, h = boxes["orbit"]
@@ -160,70 +184,50 @@ def theme_layer(th, boxes):
             f'<Transform target="angle" value="[SECONDS_IN_DAY] % 360"/>'
             + image("orbit", {"orbit": (0, 0, w, h)}, f'tintColor="{c["slit"]}"') + '</Group>')
     if th == "red":
-        parts.append(f'<Condition><Expressions><Expression name="on">[SECOND] % 2 == 0</Expression></Expressions>'
-                     f'<Compare expression="on">{image("warn_red", boxes)}</Compare></Condition>')
+        parts.append(blink(image("warn_red", boxes)))
 
-    # Time: hours and minutes glow in the black wedges; the hourglass waist is the colon.
-    parts.append(text(96, 205, 140, 70, '%s<Parameter expression="[HOUR_1_12_Z]"/>', 54, c["text"], glow=c["glow"], name="hours"))
-    parts.append(text(244, 205, 140, 70, '%s<Parameter expression="[MINUTE_Z]"/>', 54, c["text"], glow=c["glow"], name="minutes"))
-    # Date and battery in the top bulb, heart rate in the bottom bulb.
-    parts.append(text(160, 113, 160, 28, '%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/>',
-                      20, c["ink"], spacing=0.1, upper=True))
-    _, _, bw, bh = boxes["icon_bolt"]
-    parts.append(f'<Group name="battery" x="196" y="150" width="96" height="26">'
-                 f'<PartImage x="0" y="{(26 - bh) // 2}" width="{bw}" height="{bh}" tintColor="{c["ink"]}"><Image resource="icon_bolt"/></PartImage>'
-                 + text(bw + 3, 0, 70, 26, '%d%%<Parameter expression="[BATTERY_PERCENT]"/>', 15, c["ink"], family="orbitron_bold", align="START")
-                 + '</Group>')
-    _, _, hw, hh = boxes["icon_heart"]
-    bpm_none = text(hw + 14, 2, 70, 36, "--", 28, c["ink"], align="START")
-    bpm = text(hw + 14, 2, 70, 36, '%d<Parameter expression="[HEART_RATE]"/>', 28, c["ink"], align="START")
-    parts.append(f'<Group name="heart_rate" x="186" y="314" width="110" height="40">'
-                 f'<Launch target="HEALTH_HEART_RATE"/>'
-                 f'<PartImage x="6" y="{(40 - hh) // 2}" width="{hw}" height="{hh}" tintColor="{c["ink"]}"><Image resource="icon_heart"/></PartImage>'
-                 f'<Condition><Expressions><Expression name="none">[HEART_RATE] == 0</Expression></Expressions>'
-                 f'<Compare expression="none">{bpm_none}</Compare><Default>{bpm}</Default>'
-                 f'</Condition></Group>')
-    parts.append(text(200, 355, 80, 16, "BPM", 11, c["ink"], family="orbitron_bold", spacing=0.25))
-    if th == "green":
-        parts.append(f'<PartText x="0" y="0" width="480" height="480">'
-                     f'<TextCircular centerX="240" centerY="240" width="344" height="344" startAngle="242" endAngle="118" direction="COUNTER_CLOCKWISE">'
-                     f'<Font family="orbitron_bold" size="11" color="{c["dim"]}" letterSpacing="0.25">'
-                     f'<Template>%d STEPS<Parameter expression="[STEP_COUNT]"/></Template></Font></TextCircular></PartText>')
+    # Minimal: the hourglass is the hero; time and date are printed small in the top bulb.
+    parts.append(time_text(c["ink"]))
+    parts.append(date_text("#C0" + c["ink"][1:]))
     return "\n".join(parts)
 
 
 def alien_slot(boxes):
-    """Hidden slot over the core, fed by the Omnitrix app.
+    """Hidden full-face slot fed by the Omnitrix app.
 
-    value 0 = human (draws nothing), value n = alien n-1: the slot repaints the face as
-    the white alien badge. Tapping the core opens the app (WFF can't launch apps directly).
+    value 0 = human (draws nothing), value n = alien n-1: the slot repaints the face as the
+    white alien badge. Drawing is clipped to the bounding shape, so the slot spans the whole
+    face and any tap opens the app (WFF can't launch apps directly).
     """
     c = COLORS["alien"]
     value = "[COMPLICATION.RANGED_VALUE_VALUE]"
-    emblems = "".join(
-        f'<Compare expression="a{i}">'
-        + image(f"emblem_{i}", {f"emblem_{i}": (boxes[f"emblem_{i}"][0], boxes[f"emblem_{i}"][1] - 128,
-                                               boxes[f"emblem_{i}"][2], boxes[f"emblem_{i}"][3])}, f'tintColor="{c["ink"]}"')
-        + "</Compare>" for i in range(ALIEN_COUNT))
     emblem_exprs = "".join(f'<Expression name="a{i}">{value} == {i + 1}</Expression>' for i in range(ALIEN_COUNT))
-    _, _, hw, hh = boxes["icon_heart"]
-    face = "\n".join([
+
+    def emblems(tint):
+        attr = f'tintColor="{tint}"'
+        compares = "".join(f'<Compare expression="a{i}">' + image(f"emblem_{i}", boxes, attr, dy=66) + '</Compare>'
+                           for i in range(ALIEN_COUNT))
+        return f'<Condition><Expressions>{emblem_exprs}</Expressions>{compares}</Condition>'
+
+    def name(color):
+        return text(150, 157, 180, 16, '%s<Parameter expression="[COMPLICATION.TITLE]"/>', 10, color,
+                    family="orbitron_bold", spacing=0.15)
+
+    def countdown(color, **kw):
+        return text(170, 356, 140, 26, '%s<Parameter expression="[COMPLICATION.TEXT]"/>', 18, color, **kw)
+
+    aod = AOD_COLORS["alien"]
+    interactive = "\n".join([
         image("base_alien", boxes),
-        f'<Condition><Expressions>{emblem_exprs}</Expressions>{emblems}</Condition>',
-        text(160, 140, 160, 20, '%s<Parameter expression="[COMPLICATION.TITLE]"/>', 13, c["ink"], spacing=0.1),
-        text(96, 205, 140, 70, '%s<Parameter expression="[HOUR_1_12_Z]"/>', 54, c["text"], glow=c["glow"]),
-        text(244, 205, 140, 70, '%s<Parameter expression="[MINUTE_Z]"/>', 54, c["text"], glow=c["glow"]),
-        f'<PartImage x="192" y="{314 + (40 - hh) // 2}" width="{hw}" height="{hh}" tintColor="{c["ink"]}"><Image resource="icon_heart"/></PartImage>',
-        text(186 + hw + 14, 316, 70, 36, '%d<Parameter expression="[HEART_RATE]"/>', 28, c["ink"], align="START"),
-        text(200, 355, 80, 16, "BPM", 11, c["ink"], family="orbitron_bold", spacing=0.25),
-        f'<PartText x="0" y="0" width="480" height="480">'
-        f'<TextCircular centerX="240" centerY="240" width="344" height="344" startAngle="242" endAngle="118" direction="COUNTER_CLOCKWISE">'
-        f'<Font family="orbitron_bold" size="12" color="{c["text"]}" letterSpacing="0.2">'
-        f'<Template>%s REMAINING<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></TextCircular></PartText>',
+        time_text(c["ink"]), name(c["ink"]), emblems(c["ink"]), countdown(c["ink"]),
     ])
-    return f'''    <!-- Full-face slot so the badge can repaint everything (drawing is clipped to the
-         slot bounds); only the oval over the core is tappable. -->
-    <ComplicationSlot slotId="0" name="omnitrix_core" x="0" y="0" width="480" height="480"
+    ambient = "\n".join([
+        '<PartDraw x="0" y="0" width="480" height="480"><Ellipse x="0" y="0" width="480" height="480"><Fill color="#FF000000"/></Ellipse></PartDraw>',
+        image("ambient_alien", boxes),
+        time_text(aod["dim"], outline=aod["line"]), name(aod["label"]), emblems(aod["line"]),
+        countdown(aod["label"], family="orbitron_bold"),
+    ])
+    return f'''    <ComplicationSlot slotId="0" name="omnitrix_core" x="0" y="0" width="480" height="480"
         supportedTypes="RANGED_VALUE" isCustomizable="FALSE">
       <!-- The runtime requires a fallback of a supported type; battery is RANGED_VALUE.
            Alien mode below also checks MAX == ALIEN_COUNT so battery data is ignored. -->
@@ -235,22 +239,26 @@ def alien_slot(boxes):
           <Expressions><Expression name="alien">{value} &gt; 0 &amp;&amp; [COMPLICATION.RANGED_VALUE_MAX] == {ALIEN_COUNT}</Expression></Expressions>
           <Compare expression="alien">
             <Group name="alien_form" x="0" y="0" width="480" height="480">
-{face}
+              <Variant mode="AMBIENT" target="alpha" value="0"/>
+{interactive}
+            </Group>
+            <Group name="alien_aod" x="0" y="0" width="480" height="480" alpha="0">
+              <Variant mode="AMBIENT" target="alpha" value="255"/>
+{ambient}
             </Group>
           </Compare>
         </Condition>
       </Complication>
-      <Variant mode="AMBIENT" target="alpha" value="0"/>
     </ComplicationSlot>'''
 
 
 def watchface_xml(boxes):
     themes = {th: theme_layer(th, boxes) for th in THEMES}
+    aod = AOD_COLORS["green"]
     ambient = "\n".join([
         image("ambient", boxes),
-        text(96, 205, 140, 70, '%s<Parameter expression="[HOUR_1_12_Z]"/>', 54, "#3FAE22", family="orbitron_bold"),
-        text(244, 205, 140, 70, '%s<Parameter expression="[MINUTE_Z]"/>', 54, "#3FAE22", family="orbitron_bold"),
-        text(160, 113, 160, 28, '%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/>', 18, "#3FAE22", family="orbitron_bold", upper=True),
+        time_text(aod["dim"], outline=aod["line"]),
+        date_text(aod["label"]),
     ])
     return f'''<?xml version="1.0" encoding="utf-8"?>
 <!-- GENERATED by tools/build_watchface.py from design/. Do not edit by hand. -->
@@ -283,7 +291,7 @@ def watchface_xml(boxes):
         </Default>
       </Condition>
     </Group>
-    <!-- Always-on display: outline hourglass, under 5% of pixels lit. -->
+    <!-- Always-on display: a powered-down Omnitrix. -->
     <Group name="ambient" x="0" y="0" width="480" height="480" alpha="0">
       <Variant mode="AMBIENT" target="alpha" value="255"/>
 {ambient}

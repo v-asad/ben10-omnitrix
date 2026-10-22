@@ -18,6 +18,13 @@ class OmnitrixState(context: Context) {
         return Transformation(alien, prefs.getLong(KEY_STARTED_AT, now), endsAt)
     }
 
+    /** End of the post-timeout recharge (0 = none). */
+    var cooldownUntil: Long
+        get() = prefs.getLong(KEY_COOLDOWN, 0)
+        set(value) = prefs.edit { putLong(KEY_COOLDOWN, value) }
+
+    fun cooldownRemaining(now: Long = System.currentTimeMillis()): Long = (cooldownUntil - now).coerceAtLeast(0)
+
     /** Last alien used, so the selector opens where you left it. */
     var lastAlien: Int
         get() = prefs.getInt(KEY_LAST, 0).coerceIn(Aliens.all.indices)
@@ -41,5 +48,6 @@ class OmnitrixState(context: Context) {
         const val KEY_STARTED_AT = "started_at"
         const val KEY_ENDS_AT = "ends_at"
         const val KEY_LAST = "last_alien"
+        const val KEY_COOLDOWN = "cooldown_until"
     }
 }

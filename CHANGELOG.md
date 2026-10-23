@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased (v0.3.0, pending on-watch testing)
+## v0.3.0 (2026-10-23)
+
+Tested on the Galaxy Watch8: Bio-scan reads live heart rate (Android 16 `health.READ_HEART_RATE` permission), the codex locks and the activity prompt work, and the selector spins with 0 janky frames.
 
 ### Added
 - **Bio-scan** (menu → Bio-scan):

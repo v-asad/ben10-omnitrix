@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2 (2026-10-23)
+
+### Changed
+- **The seconds ring is back:** reverts v0.4.1. The face looked too bare without it, so the v0.4.0 layout returns, with the seconds sweep around the hourglass and hour ticks on the always-on face.
+
+
 ## v0.4.1 (2026-10-23)
 
 ### Changed

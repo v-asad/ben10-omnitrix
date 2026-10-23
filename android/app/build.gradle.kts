@@ -12,8 +12,8 @@ android {
         applicationId = "dev.omnitrix.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.3.3"
+        versionCode = 8
+        versionName = "0.4.0"
     }
 
     buildTypes {
@@ -50,4 +50,9 @@ dependencies {
     implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1")
     // Installs Compose's baseline profiles at install time: AOT-compiled hot paths, smoother first frames.
     implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    // Tiles: Bio-scan (live heart rate), DNA Codex, quick settings
+    implementation("androidx.wear.tiles:tiles:1.6.2")
+    implementation("androidx.wear.protolayout:protolayout:1.4.2")
+    implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
+    implementation("androidx.concurrent:concurrent-futures:1.3.0")
 }

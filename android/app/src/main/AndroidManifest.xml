@@ -54,6 +54,49 @@
                 android:value="0" />
         </service>
 
+        <!-- Tiles (swipe from the face): live Bio-scan, DNA Codex, quick settings. -->
+        <service
+            android:name=".tiles.BioScanTileService"
+            android:exported="true"
+            android:label="Omnitrix Bio-scan"
+            android:icon="@drawable/ic_omnitrix"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/ic_omnitrix" />
+        </service>
+
+        <service
+            android:name=".tiles.CodexTileService"
+            android:exported="true"
+            android:label="Omnitrix DNA Codex"
+            android:icon="@drawable/ic_omnitrix"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/ic_omnitrix" />
+        </service>
+
+        <service
+            android:name=".tiles.SettingsTileService"
+            android:exported="true"
+            android:label="Omnitrix settings"
+            android:icon="@drawable/ic_omnitrix"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/ic_omnitrix" />
+        </service>
+
         <receiver
             android:name=".TimeoutReceiver"
             android:exported="false" />

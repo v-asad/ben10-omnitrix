@@ -87,12 +87,14 @@ fun SelectorScreen(
     initialAlien: Int,
     /** Non-null while the Omnitrix is recharging after a timeout. */
     rechargeText: String?,
+    /** DNA Codex: whether an alien is available to transform into. */
+    isUnlocked: (Int) -> Boolean,
     onSelectedChange: (Int) -> Unit,
     onTransform: (Int) -> Unit,
     onOpenDossier: (Int) -> Unit,
     onOpenMenu: () -> Unit,
 ) {
-    val locked = energy.locked || rechargeText != null
+    fun lockedFor(index: Int) = energy.locked || rechargeText != null || !isUnlocked(index)
     val context = LocalContext.current
     val view = LocalView.current
     val scope = rememberCoroutineScope()
@@ -139,7 +141,7 @@ fun SelectorScreen(
 
     fun slam() {
         if (transforming) return
-        if (locked) {
+        if (lockedFor(selected)) {
             Haptics.denied(context)
             Sounds.play(context, Sounds.Cue.DENIED)
             scope.launch {
@@ -228,8 +230,13 @@ fun SelectorScreen(
             measurer.measure("DNA %02d / %02d · %s".format(selected + 1, count, alien.era),
                 orbitron(density, scale, 10f, FontWeight.Bold, Color(0xFF6F9A66), 1.5f))
         }
-        val cta = remember(scale, energy, rechargeText) {
-            measurer.measure(rechargeText ?: if (energy.locked) "NO ENERGY · CHARGE" else "TAP TO TRANSFORM",
+        val dnaLocked = !isUnlocked(selected)
+        val cta = remember(scale, energy, rechargeText, dnaLocked) {
+            measurer.measure(rechargeText ?: when {
+                energy.locked -> "NO ENERGY · CHARGE"
+                dnaLocked -> "DNA REQUIRED"
+                else -> "TAP TO TRANSFORM"
+            },
                 orbitron(density, scale, 10f, FontWeight.Bold, main, 3f))
         }
         val statLabels = remember(scale) {
@@ -247,9 +254,9 @@ fun SelectorScreen(
             val pos = position.value
             val t = scan.value
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                drawBezel(kit, art, pos, count)
+                drawBezel(kit, art, pos, count, isUnlocked)
                 drawCore(kit, spin.value)
-                drawHologram(kit, art, selected, materialize.value, t, locked)
+                drawHologram(kit, art, selected, materialize.value, t, lockedFor(selected))
                 drawStats(kit, alien.stats)
             }
             drawCentered(index, 72f, scale)
@@ -291,7 +298,7 @@ private class SelectorKit(val energy: Energy) {
     }
 }
 
-private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, count: Int) {
+private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, count: Int, isUnlocked: (Int) -> Boolean) {
     drawCircle(kit.ringBrush, radius = 226f, center = CENTER, style = Stroke(26f), alpha = 0.5f)
     // the chamber at 12 o'clock glows
     drawArc(kit.main, -90f - 13f, 26f, useCenter = false, topLeft = Offset(14f, 14f), size = Size(452f, 452f),
@@ -302,7 +309,7 @@ private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, cou
         if (abs(a) > 172f) continue                         // rolling window: only what fits on the bezel
         val sel = i == top
         val p = polar(206f, a)
-        val alpha = if (sel) 1f else max(0.18f, 1f - abs(a) / 180f)
+        val alpha = (if (sel) 1f else max(0.18f, 1f - abs(a) / 180f)) * (if (isUnlocked(i)) 1f else 0.35f)
         drawCircle(Color.Black, radius = if (sel) 25f else 17f, center = p)
         drawCircle(if (sel) kit.main else Color(0xFF2A3A28), radius = if (sel) 25f else 17f, center = p,
             style = Stroke(if (sel) 3f else 2f), alpha = alpha)

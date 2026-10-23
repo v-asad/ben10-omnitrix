@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.3.0 (2026-10-23)
+
+Tested on the Galaxy Watch8: Bio-scan reads live heart rate (Android 16 `health.READ_HEART_RATE` permission), the codex locks and the activity prompt work, and the selector spins with 0 janky frames.
+
+### Added
+- **Bio-scan** (menu → Bio-scan):
+  - Live heart rate. The sensor runs only while the screen is open.
+  - A mini Omnitrix core beating at your BPM, and a pulse trace drawn at your heart rate. It's labelled a pulse because watches don't give apps a raw ECG.
+  - Five alien-named zones based on your age: Grey Matter, Diamondhead, Four Arms, Heatblast, XLR8.
+  - A haptic when you change zone, and session min / avg / max.
+- **DNA Codex** (menu → DNA Codex):
+  - You start with the original ten aliens. Every 5,000 steps unlocks the next one in roster order, and each full transformation adds bonus DNA.
+  - Master Control (battery above 90%) unlocks everyone.
+  - Locked aliens are dimmed in the selector and show "DNA REQUIRED". A "NEW DNA ACQUIRED" splash plays when one unlocks, and the codex screen shows all 50 plus your progress.
+  - Steps come from the hardware step counter during the existing ~15-minute sampler, so there are no extra wake-ups.
+  - Turn locks off under Settings → DNA Codex.
+- New settings: DNA Codex on/off, and age (for heart-rate zones).
+
+### Note
+- With the codex on, aliens beyond the original ten become locked until you earn them. Turn it off in Settings to keep all 50.
+
+
 ## v0.2.0 (2026-10-23)
 
 The transform loop, finished, plus sound and battery diagnostics.

@@ -78,8 +78,10 @@ private fun Row(onClick: (() -> Unit)?, label: String, energy: Energy, value: St
 }
 
 @Composable
-fun MenuScreen(energy: Energy, onSettings: () -> Unit, onBattery: () -> Unit, onBack: () -> Unit) {
+fun MenuScreen(energy: Energy, onBioScan: () -> Unit, onCodex: () -> Unit, onSettings: () -> Unit, onBattery: () -> Unit, onBack: () -> Unit) {
     OmnitrixList("OMNITRIX", energy, onBack) {
+        item { Row(onBioScan, "BIO-SCAN", energy, value = "›", note = "HEART RATE") }
+        item { Row(onCodex, "DNA CODEX", energy, value = "›", note = "UNLOCK ALIENS BY MOVING") }
         item { Row(onSettings, "SETTINGS", energy, value = "›") }
         item { Row(onBattery, "BATTERY", energy, value = "›", note = "DIAGNOSTICS & DRAIN") }
         item {
@@ -119,6 +121,14 @@ fun SettingsScreen(energy: Energy, onBack: () -> Unit) {
         item(key = "snd$version") {
             Row({ change { settings.sound = !settings.sound } }, "SOUND", energy,
                 value = if (settings.sound) "ON" else "OFF", note = "ONLY IN SOUND MODE · USES WATCH VOLUME")
+        }
+        item(key = "codex$version") {
+            Row({ change { settings.codex = !settings.codex; Diagnostics.schedule(context) } }, "DNA CODEX", energy,
+                value = if (settings.codex) "ON" else "OFF", note = if (settings.codex) "EARN ALIENS WITH STEPS" else "ALL ALIENS UNLOCKED")
+        }
+        item(key = "age$version") {
+            Row({ change { settings.age = next(Settings.AGES, settings.age) } }, "AGE", energy,
+                value = "${settings.age}", note = "FOR HEART-RATE ZONES")
         }
         item(key = "diag$version") {
             Row({ change { settings.diagnostics = !settings.diagnostics; Diagnostics.schedule(context) } }, "DIAGNOSTICS", energy,

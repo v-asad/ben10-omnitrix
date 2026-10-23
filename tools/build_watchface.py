@@ -335,11 +335,28 @@ def watchface_xml(boxes):
 '''
 
 
+AOD_LIT_BUDGET = 0.15   # Wear OS guidance: keep the always-on screen under ~15% lit pixels
+
+
+def check_aod_budget():
+    """Fails the build if an always-on layer lights too much of the OLED (power + burn-in)."""
+    for name in ("ambient", "ambient_alien"):
+        img = Image.open(RES / "drawable-nodpi" / f"{name}.png").convert("RGBA")
+        black = Image.new("RGBA", img.size, (0, 0, 0, 255))
+        black.alpha_composite(img)
+        px = list(black.convert("L").getdata())
+        lit = sum(v > 8 for v in px) / len(px)
+        print(f"  AOD {name:14s} {lit:5.1%} lit pixels (budget {AOD_LIT_BUDGET:.0%})")
+        if lit > AOD_LIT_BUDGET:
+            sys.exit(f"{name} lights {lit:.1%} of the screen; the always-on budget is {AOD_LIT_BUDGET:.0%}")
+
+
 def main():
     print("fonts…")
     build_fonts()
     print("layers…")
     boxes = export_layers()
+    check_aod_budget()
     (RES / "raw").mkdir(parents=True, exist_ok=True)
     (RES / "raw/watchface.xml").write_text(watchface_xml(boxes))
     print("app assets…")

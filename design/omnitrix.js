@@ -362,7 +362,8 @@ function hrSVG(o) {
   </svg>`;
 }
 
-// Always-on art: a "powered-down" Omnitrix. Thin neon lines, dimly glowing bulbs,
+// Always-on art: a "powered-down" Omnitrix. Budget: ≤ 15% lit pixels (Wear OS AOD guidance);
+// measured by tools/build_watchface.py. Thin neon lines, dimly glowing bulbs,
 // everything else dark. Static (no text) so the watch face can reuse it as a layer.
 const AOD = {
   green: { line:'#46C424', dim:'#0E3A08', faint:'#163A14', label:'#2A6A1A' },
@@ -379,10 +380,10 @@ function ambientArt(id, mode='green') {
     return `<rect x="233" y="5" width="14" height="18" rx="3" transform="rotate(${a} 240 240)" fill="${c.dim}" stroke="${c.label}" stroke-width="1.5"/>`;
   }).join('');
   const bulb = (y0) => `<linearGradient id="bulb${id}${y0}" x1="0" y1="${y0 < 240 ? 0 : 1}" x2="0" y2="${y0 < 240 ? 1 : 0}">
-      <stop offset="0" stop-color="${c.dim}"/><stop offset=".9" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
+      <stop offset="0" stop-color="${c.dim}"/><stop offset=".38" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
   return `<defs>
       ${bulb(90)}${bulb(390)}
-      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <clipPath id="aclip${id}"><circle cx="240" cy="240" r="${CORE_R}"/></clipPath>
       <path id="aarc${id}" d="${arc(172, -62, 62)}"/>
     </defs>

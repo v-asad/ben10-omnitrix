@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.2 (2026-10-23)
+
+### Fixed
+- Tapping the watch face reopened the last screen you'd left open (e.g. Bio-scan) instead of the alien selector. The face now always opens a fresh dial, and the app closes when you leave it, so nothing lingers in the background.
+
+
 ## v0.3.1 (2026-10-23)
 
 A patch from the first night of wear plus design refinements.

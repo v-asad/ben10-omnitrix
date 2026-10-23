@@ -44,8 +44,9 @@ class OmnitrixStateService : SuspendingComplicationDataSourceService() {
         }
         val text = if (endsAt == null) PlainComplicationText.Builder("READY").build()
         else TimeDifferenceComplicationText.Builder(TimeDifferenceStyle.STOPWATCH, CountDownTimeReference(Instant.ofEpochMilli(endsAt))).build()
+        // Fresh task on every tap: the dial always pops up, never a leftover screen (e.g. Bio-scan).
         val tap = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
+            this, 0, Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         return RangedValueComplicationData.Builder(

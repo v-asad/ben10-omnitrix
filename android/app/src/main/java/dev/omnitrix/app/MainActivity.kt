@@ -63,6 +63,9 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         Diagnostics.log(this, "app_close", "ms=${SystemClock.elapsedRealtime() - openedAt}")
+        // Like the real dial: leaving the Omnitrix closes it, so the next tap always starts at the
+        // selector and nothing lingers in the background.
+        if (!isChangingConfigurations) finish()
     }
 
     private companion object {

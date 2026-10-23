@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.3.1 (2026-10-23)
+
+A patch from the first night of wear plus design refinements.
+
+### Changed
+- **Watch face:** the grey outer ring, its four green lights and the activation button in the bottom bulb are gone, so the hourglass grows to fill the screen.
+- **Alien selector:** just the hologram, now bigger and clearer: lighter scanlines, less flicker, full-strength art. The name, species, stats and prompts are gone (the dossier still has them, swipe up).
+- **Bio-scan:** minimal redesign with no Omnitrix logo. It shows the zone gauge with a needle that pulses on every beat, a big BPM readout, the pulse trace and one zone word.
+
+### Fixed (from the overnight diagnostics)
+- **Always-on face power:** it lit 25.7% of the screen, against Wear OS's ~15% guidance. It's now 13.5% (14.7% in alien form) with about 30% less estimated OLED power, and the face build fails if an always-on layer goes over budget.
+- **Battery report:**
+  - Now shows screen time, doze sessions and grouped wake-up sources from Android's battery history, plus any Omnitrix wake-locks or alarms (there were none overnight).
+  - Warns when Wireless debugging is keeping Wi-Fi awake: it caused 357 of 762 wake-ups last night.
+  - Replaces the misleading "screen on in % of samples" metric.
+- **New `tools/wireless_debugging.sh off`** to turn Wireless debugging off when you're not developing.
+
+
 ## v0.3.0 (2026-10-23)
 
 Tested on the Galaxy Watch8: Bio-scan reads live heart rate (Android 16 `health.READ_HEART_RATE` permission), the codex locks and the activity prompt work, and the selector spins with 0 janky frames.

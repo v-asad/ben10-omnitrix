@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.4.3 (2026-10-23)
+
+### Fixed
+- **Swipe back from the left edge** now works on every screen, like other Wear apps:
+  - Selector → watch face.
+  - Dossier or menu → selector.
+  - Settings, Battery, Bio-scan or Codex → menu, or the face if you opened them from a tile.
+  - Alien form or a running transformation → face.
+
+  The screen follows your finger with the watch face showing through, and dragging the alien carousel elsewhere on screen is unaffected.
+
+
 ## v0.4.2 (2026-10-23)
 
 ### Changed

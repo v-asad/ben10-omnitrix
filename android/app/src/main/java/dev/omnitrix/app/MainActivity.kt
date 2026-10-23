@@ -25,6 +25,7 @@ import dev.omnitrix.app.ui.BioScanScreen
 import dev.omnitrix.app.ui.CodexScreen
 import dev.omnitrix.app.ui.NewDnaSplash
 import dev.omnitrix.app.ui.DossierScreen
+import dev.omnitrix.app.ui.EdgeSwipeBack
 import dev.omnitrix.app.ui.FxCache
 import dev.omnitrix.app.ui.MenuScreen
 import dev.omnitrix.app.ui.SelectorScreen
@@ -117,6 +118,18 @@ private fun OmnitrixApp(preview: Int?, start: Screen?, onDone: () -> Unit) {
         }
     }
 
+    // One back rule for every screen, used by the edge swipe and the hardware back key.
+    val goBack: () -> Unit = {
+        when {
+            transformingInto != null || transformation != null -> onDone()
+            screen == Screen.SELECTOR -> onDone()
+            screen == Screen.DOSSIER || screen == Screen.MENU -> screen = Screen.SELECTOR
+            else -> backToMenu()
+        }
+    }
+    BackHandler(onBack = goBack)
+
+    EdgeSwipeBack(onBack = goBack) {
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val current = transformation
         val into = transformingInto
@@ -165,5 +178,6 @@ private fun OmnitrixApp(preview: Int?, start: Screen?, onDone: () -> Unit) {
         if (newDna.isNotEmpty() && screen == Screen.SELECTOR && transformation == null && transformingInto == null) {
             NewDnaSplash(newDna, energy, art, onDone = { codex.markSeen(); newDna = emptyList() })
         }
+    }
     }
 }

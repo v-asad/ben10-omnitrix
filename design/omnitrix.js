@@ -1,5 +1,5 @@
 // Omnitrix renderer: data + SVG builders shared by the prototype (index.html)
-// and the watch-face asset exporter (assets.html). All geometry is in a 480×480 viewBox.
+// and the watch-face layer exporter (export.html). All geometry is in a 480×480 viewBox.
 /* =========================================================
    DATA
    ========================================================= */
@@ -10,22 +10,22 @@ const THEMES = {
   alien:  { label:'ALIEN FORM',      c1:'#ffffff', c2:'#f1fff0', c3:'#b9dcb2', glow:'#e2ffd8', ringA:'#ffffff', ringB:'#9aa29a', plate:'#0b0d0b', wedge:'#060806', ink:'#0d3008', text:'#9bff66', slit:'#9bff66' },
 };
 
-// Emblems are original glyphs drawn in a 100×100 box (not official artwork).
-// Each alien doubles as an app shortcut.
+// Emblems are original glyphs drawn in a 100×100 box (not official artwork). The prototype
+// shows the original ten plus three Summer Vacation aliens; the watch app carries all 50.
 const ALIENS = [
-  { name:'HEATBLAST',   fn:'Flashlight',     g:`<path d="M50 6C60 26 80 36 74 62C70 80 60 92 50 94C40 92 28 82 26 64C24 48 36 42 38 26C45 38 47 46 52 48C57 34 55 20 50 6Z"/><path d="M50 58C56 66 60 72 56 82C54 86 46 86 44 82C40 74 46 66 50 58Z" fill="#000" opacity=".55"/>` },
-  { name:'XLR8',        fn:'Stopwatch',      g:`<path d="M10 26L38 50L10 74H24L52 50L24 26Z"/><path d="M42 26L70 50L42 74H56L84 50L56 26Z"/><rect x="84" y="44" width="10" height="12" rx="2"/>` },
-  { name:'FOUR ARMS',   fn:'Workout',        g:`<circle cx="50" cy="20" r="11"/><rect x="36" y="34" width="28" height="44" rx="8"/><rect x="8" y="34" width="26" height="9" rx="4"/><rect x="66" y="34" width="26" height="9" rx="4"/><rect x="10" y="52" width="24" height="9" rx="4"/><rect x="66" y="52" width="24" height="9" rx="4"/><rect x="38" y="78" width="9" height="18" rx="3"/><rect x="53" y="78" width="9" height="18" rx="3"/>` },
-  { name:'GREY MATTER', fn:'Calculator',     g:`<ellipse cx="50" cy="44" rx="34" ry="30"/><ellipse cx="36" cy="46" rx="9" ry="12" fill="#000"/><ellipse cx="64" cy="46" rx="9" ry="12" fill="#000"/><rect x="40" y="72" width="20" height="22" rx="6"/>` },
-  { name:'DIAMONDHEAD', fn:'Brightness',     g:`<path d="M50 4L76 30L64 94H36L24 30Z"/><path d="M50 4L50 94M24 30H76M36 94L50 30L64 94" stroke="#000" stroke-width="3" fill="none" opacity=".55"/>` },
-  { name:'RIPJAWS',     fn:'Water lock',     g:`<path d="M14 58C30 30 60 18 86 26C72 36 66 44 64 56C76 54 84 58 90 66C64 76 34 78 14 58Z"/><circle cx="72" cy="38" r="4" fill="#000"/><path d="M6 86C16 80 26 80 36 86S56 92 66 86S86 80 94 86" stroke="currentColor" stroke-width="5" fill="none"/>` },
-  { name:'UPGRADE',     fn:'Settings',       g:`<circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="50" cy="50" r="15"/><circle cx="50" cy="50" r="6" fill="#000"/><path d="M50 10V30M50 70V90M10 50H30M70 50H90" stroke="currentColor" stroke-width="5"/>` },
-  { name:'GHOSTFREAK',  fn:'Do Not Disturb', g:`<path d="M20 92V44C20 22 34 8 50 8S80 22 80 44V92L70 82L60 92L50 82L40 92L30 82Z"/><circle cx="50" cy="40" r="13" fill="#000"/><circle cx="50" cy="40" r="5"/>` },
-  { name:'STINKFLY',    fn:'Weather',        g:`<ellipse cx="50" cy="56" rx="10" ry="30"/><ellipse cx="24" cy="38" rx="20" ry="9" transform="rotate(-25 24 38)" opacity=".8"/><ellipse cx="76" cy="38" rx="20" ry="9" transform="rotate(25 76 38)" opacity=".8"/><ellipse cx="26" cy="62" rx="16" ry="7" transform="rotate(20 26 62)" opacity=".6"/><ellipse cx="74" cy="62" rx="16" ry="7" transform="rotate(-20 74 62)" opacity=".6"/><circle cx="40" cy="14" r="7"/><circle cx="60" cy="14" r="7"/>` },
-  { name:'WILDMUTT',    fn:'Find my phone',  g:`<path d="M20 70C20 46 34 34 50 34S80 46 80 70L70 62L62 74L50 64L38 74L30 62Z"/><path d="M28 24C36 14 64 14 72 24M18 14C32 0 68 0 82 14" stroke="currentColor" stroke-width="5" fill="none"/>` },
-  { name:'CANNONBOLT',  fn:'Steps',          g:`<circle cx="50" cy="50" r="42"/><path d="M14 40C34 30 66 30 86 40M10 58C32 50 68 50 90 58M30 14C26 38 26 62 30 86M70 14C74 38 74 62 70 86" stroke="#000" stroke-width="4" fill="none" opacity=".6"/>` },
-  { name:'ECHO ECHO',   fn:'Music',          g:`<rect x="34" y="30" width="32" height="40" rx="10"/><circle cx="50" cy="50" r="7" fill="#000"/><path d="M24 36C18 44 18 56 24 64M76 36C82 44 82 56 76 64M14 28C4 42 4 58 14 72M86 28C96 42 96 58 86 72" stroke="currentColor" stroke-width="5" fill="none"/>` },
-  { name:'CLOCKWORK',   fn:'Timer',          g:`<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="9"/><path d="M50 50V30M50 50L64 58" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>${[0,45,90,135,180,225,270,315].map(a=>`<rect x="45" y="6" width="10" height="12" rx="2" transform="rotate(${a} 50 50)"/>`).join('')}` },
+  { name:'HEATBLAST',   g:`<path d="M50 6C60 26 80 36 74 62C70 80 60 92 50 94C40 92 28 82 26 64C24 48 36 42 38 26C45 38 47 46 52 48C57 34 55 20 50 6Z"/><path d="M50 58C56 66 60 72 56 82C54 86 46 86 44 82C40 74 46 66 50 58Z" fill="#000" opacity=".55"/>` },
+  { name:'XLR8',        g:`<path d="M10 26L38 50L10 74H24L52 50L24 26Z"/><path d="M42 26L70 50L42 74H56L84 50L56 26Z"/><rect x="84" y="44" width="10" height="12" rx="2"/>` },
+  { name:'FOUR ARMS',   g:`<circle cx="50" cy="20" r="11"/><rect x="36" y="34" width="28" height="44" rx="8"/><rect x="8" y="34" width="26" height="9" rx="4"/><rect x="66" y="34" width="26" height="9" rx="4"/><rect x="10" y="52" width="24" height="9" rx="4"/><rect x="66" y="52" width="24" height="9" rx="4"/><rect x="38" y="78" width="9" height="18" rx="3"/><rect x="53" y="78" width="9" height="18" rx="3"/>` },
+  { name:'GREY MATTER', g:`<ellipse cx="50" cy="44" rx="34" ry="30"/><ellipse cx="36" cy="46" rx="9" ry="12" fill="#000"/><ellipse cx="64" cy="46" rx="9" ry="12" fill="#000"/><rect x="40" y="72" width="20" height="22" rx="6"/>` },
+  { name:'DIAMONDHEAD', g:`<path d="M50 4L76 30L64 94H36L24 30Z"/><path d="M50 4L50 94M24 30H76M36 94L50 30L64 94" stroke="#000" stroke-width="3" fill="none" opacity=".55"/>` },
+  { name:'RIPJAWS',     g:`<path d="M14 58C30 30 60 18 86 26C72 36 66 44 64 56C76 54 84 58 90 66C64 76 34 78 14 58Z"/><circle cx="72" cy="38" r="4" fill="#000"/><path d="M6 86C16 80 26 80 36 86S56 92 66 86S86 80 94 86" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'UPGRADE',     g:`<circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="50" cy="50" r="15"/><circle cx="50" cy="50" r="6" fill="#000"/><path d="M50 10V30M50 70V90M10 50H30M70 50H90" stroke="currentColor" stroke-width="5"/>` },
+  { name:'GHOSTFREAK',  g:`<path d="M20 92V44C20 22 34 8 50 8S80 22 80 44V92L70 82L60 92L50 82L40 92L30 82Z"/><circle cx="50" cy="40" r="13" fill="#000"/><circle cx="50" cy="40" r="5"/>` },
+  { name:'STINKFLY',    g:`<ellipse cx="50" cy="56" rx="10" ry="30"/><ellipse cx="24" cy="38" rx="20" ry="9" transform="rotate(-25 24 38)" opacity=".8"/><ellipse cx="76" cy="38" rx="20" ry="9" transform="rotate(25 76 38)" opacity=".8"/><ellipse cx="26" cy="62" rx="16" ry="7" transform="rotate(20 26 62)" opacity=".6"/><ellipse cx="74" cy="62" rx="16" ry="7" transform="rotate(-20 74 62)" opacity=".6"/><circle cx="40" cy="14" r="7"/><circle cx="60" cy="14" r="7"/>` },
+  { name:'WILDMUTT',    g:`<path d="M20 70C20 46 34 34 50 34S80 46 80 70L70 62L62 74L50 64L38 74L30 62Z"/><path d="M28 24C36 14 64 14 72 24M18 14C32 0 68 0 82 14" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'CANNONBOLT',  g:`<circle cx="50" cy="50" r="42"/><path d="M14 40C34 30 66 30 86 40M10 58C32 50 68 50 90 58M30 14C26 38 26 62 30 86M70 14C74 38 74 62 70 86" stroke="#000" stroke-width="4" fill="none" opacity=".6"/>` },
+  { name:'ECHO ECHO',   g:`<rect x="34" y="30" width="32" height="40" rx="10"/><circle cx="50" cy="50" r="7" fill="#000"/><path d="M24 36C18 44 18 56 24 64M76 36C82 44 82 56 76 64M14 28C4 42 4 58 14 72M86 28C96 42 96 58 86 72" stroke="currentColor" stroke-width="5" fill="none"/>` },
+  { name:'CLOCKWORK',   g:`<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="9"/><path d="M50 50V30M50 50L64 58" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>${[0,45,90,135,180,225,270,315].map(a=>`<rect x="45" y="6" width="10" height="12" rx="2" transform="rotate(${a} 50 50)"/>`).join('')}` },
 ];
 
 // Dossier shown on the hologram / info screen. Stats are fan ratings out of 10.
@@ -47,12 +47,14 @@ const DOSSIER = {
 const STAT_LABELS = ['STR','SPD','INT','DEF'];
 ALIENS.forEach(a => { Object.assign(a, DOSSIER[a.name]); a.slug = a.name.toLowerCase().replace(/ /g, '-'); });
 
+// Bio-scan zones as fractions of max heart rate (220 − age; the prototype assumes 30).
+const MAX_HR = 190;
 const HR_ZONES = [
-  { max:99,  name:'GREY MATTER',  tag:'CALM'      },
-  { max:119, name:'DIAMONDHEAD',  tag:'STEADY'    },
-  { max:139, name:'FOUR ARMS',    tag:'STRENGTH'  },
-  { max:159, name:'HEATBLAST',    tag:'BURN'      },
-  { max:999, name:'XLR8',         tag:'MAX SPEED' },
+  { upTo:.60, tag:'CALM',   col:'#2f8f2a' },
+  { upTo:.70, tag:'STEADY', col:'#4fcf2a' },
+  { upTo:.80, tag:'STRONG', col:'#9dff2e' },
+  { upTo:.90, tag:'BURN',   col:'#ffb02e' },
+  { upTo:9.9, tag:'MAX',    col:'#ff4a2e' },
 ];
 
 /* =========================================================
@@ -145,6 +147,9 @@ function faceSVG(o) {
     const a = ALIENS[o.alien];
     content = time + ink(166, a.name, a.name.length > 9 ? 10 : 11, 700, 1.5, .8) + emblem(a, 240, 306, 38, t.ink) +
       (o.countdown != null ? ink(370, `${pad(Math.floor(o.remaining/60))}:${pad(Math.floor(o.remaining%60))}`, 18) : '');
+  } else if (o.timeout != null) {
+    // red TIMEOUT face after switching back from an alien
+    content = time + ink(166, 'TIMEOUT', 11, 700, 3, .85) + ink(342, `00:${pad(Math.ceil(o.timeout))}`, 22);
   } else {
     content = time + ink(166, `${DAYS[d.getDay()]} ${pad(d.getDate())}`, 11, 700, 3, .75);
   }
@@ -157,7 +162,7 @@ function faceSVG(o) {
   if (o.theme === 'alien' && o.countdown != null) {
     extras.push(`<path d="${arc(226, 0, Math.max(.5, o.countdown*359.9))}" fill="none" stroke="${t.text}" stroke-width="6" stroke-linecap="round" filter="url(#glow${id})"/>`);
   }
-  const warn = o.theme === 'red'
+  const warn = o.theme === 'red' && o.timeout == null
     ? `<g class="blink"><text font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="2" fill="${t.text}"><textPath href="#arcBot${id}" startOffset="50%" text-anchor="middle">▲ ENERGY LOW</textPath></text></g>`
     : '';
 
@@ -210,14 +215,6 @@ function holoArt(a, id, cx, cy, size, col) {
   </g>`;
 }
 
-function statBars(stats, col, x0, y, gap=47) {
-  return stats.map((v,k) => {
-    const x = x0 + k*gap;
-    return `<text x="${x+19}" y="${y}" text-anchor="middle" font-family="Orbitron" font-size="8" letter-spacing="1" fill="#6f9a66">${STAT_LABELS[k]}</text>` +
-      Array.from({length:10}, (_,n) => `<rect x="${x+n*4}" y="${y+4}" width="3" height="6" fill="${n<v?col:'#1c2a1a'}"/>`).join('');
-  }).join('');
-}
-
 function selectorSVG(o) {
   const id = ++UID, th = o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green', t = THEMES[th];
   const a = ALIENS[o.alien], locked = th === 'red';
@@ -245,19 +242,14 @@ function selectorSVG(o) {
     <g ${since('pop', o.enteredAt ?? -1e9)}>
       <circle cx="240" cy="240" r="176" fill="#000" stroke="${col}" stroke-width="2" opacity=".95"/>
       <circle cx="240" cy="240" r="168" fill="none" stroke="${col}" stroke-width="1" stroke-dasharray="2 6" opacity=".5" ${anim('spin-rev',60)}/>
-      <text x="240" y="88" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="13" fill="${locked?'#a5554a':'#6f9a66'}">${pad(o.time.getHours()%12||12)}:${pad(o.time.getMinutes())} · DNA ${pad(o.alien+1)}/${pad(ALIENS.length)}</text>
       <polygon points="198,292 282,292 334,104 146,104" fill="url(#cone${id})"/>
       <ellipse cx="240" cy="292" rx="44" ry="7" fill="${col}" opacity=".7" filter="url(#glow${id})"/>
       <g ${since('holoIn', o.changedAt ?? -1e9)}><g ${anim('holo',2.2)} opacity="${locked?.45:1}">${holoArt(a, id, 240, 196, 184, col)}</g></g>
-      <text x="240" y="326" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="25" letter-spacing="3" fill="${col}" filter="url(#glow${id})">${a.name}</text>
-      <text x="240" y="345" text-anchor="middle" font-family="Chakra Petch" font-weight="600" font-size="13" letter-spacing="2" fill="${locked?'#c07468':'#8fbf84'}">${a.species.toUpperCase()} · ${a.planet.toUpperCase()}</text>
-      ${statBars(a.stats, col, 150, 362)}
-      <text x="240" y="398" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="3" fill="${col}" ${anim('breathe',3.2)}>${locked ? 'NO ENERGY · CHARGE' : 'TAP TO TRANSFORM'}</text>
     </g>
   </svg>`;
 }
 
-// Full alien profile: swipe up on the hologram to open, tap to return.
+// Full alien profile: swipe up on the hologram to open, swipe down or tap to return.
 function dossierSVG(o) {
   const id = ++UID, th = o.theme === 'red' ? 'red' : o.theme === 'master' ? 'master' : 'green', t = THEMES[th];
   const a = ALIENS[o.alien], col = th === 'red' ? '#ff4a3a' : t.text, dim = th === 'red' ? '#a5554a' : '#6f9a66';
@@ -287,61 +279,73 @@ function dossierSVG(o) {
       <line x1="240" y1="250" x2="240" y2="278" stroke="#1f3320"/>
       ${label(240,302,'POWERS')}${value(240,320,a.powers.join(' · '),a.powers.join(' · ').length>40?11.5:13)}
       ${label(240,346,'WEAKNESS')}${value(240,363,a.weakness.toUpperCase(),12)}
-      <rect x="150" y="377" width="180" height="24" rx="12" fill="none" stroke="${col}" stroke-width="1.5"/>
-      <text x="240" y="393" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="10" letter-spacing="2" fill="${col}">◆ ${a.fn.toUpperCase()}</text>
-      <text x="240" y="424" text-anchor="middle" font-family="Orbitron" font-size="8" letter-spacing="3" fill="${dim}">TAP TO RETURN</text>
+      <text x="240" y="410" text-anchor="middle" font-family="Orbitron" font-size="8" letter-spacing="3" fill="${dim}">SWIPE DOWN TO RETURN</text>
     </g>
   </svg>`;
 }
 
+// Bio-scan: minimal heart monitor. Zone gauge on the bezel with a needle that pulses with each
+// beat, the BPM, and a pulse trace paced by your rate. No logo, three words of text.
 function hrSVG(o) {
   const id = ++UID, t = THEMES.green;
-  const z = HR_ZONES.find(z => o.hr <= z.max);
-  const zi = HR_ZONES.indexOf(z);
-  const beat = 'l18 0 l6 -6 l6 6 l8 0 l4 8 l6 -54 l6 62 l4 -16 l10 0 l8 -12 l8 12 l36 0';
-  let ecg = 'M0 0'; for (let i = 0; i < 6; i++) ecg += beat;
-  // gauge 40..200 bpm mapped to -130..130 deg
-  const ang = v => -130 + (Math.min(200, Math.max(40, v)) - 40) / 160 * 260;
-  const zoneCols = ['#2f8f2a','#4fcf2a','#9dff2e','#ffb02e','#ff4a2e'];
-  const bounds = [40,100,120,140,160,200];
-  let gauge = '';
-  for (let i = 0; i < 5; i++) gauge += `<path d="${arc(212, ang(bounds[i])+1, ang(bounds[i+1])-1)}" stroke="${zoneCols[i]}" stroke-width="${i===zi?16:9}" fill="none" opacity="${i===zi?1:.45}" ${i===zi?`filter="url(#glow${id})"`:''}/>`;
-  const [nx,ny] = polar(212, ang(o.hr));
+  const zi = HR_ZONES.findIndex(z => o.hr / MAX_HR <= z.upTo), z = HR_ZONES[zi];
+  const lo = 40, hi = MAX_HR + 10;
+  const ang = v => -130 + (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * 260;
+  let gauge = '', from = lo;
+  HR_ZONES.forEach((zz, i) => {
+    const to = Math.min(hi, zz.upTo * MAX_HR), on = i === zi;
+    gauge += `<path d="${arc(216, ang(from)+1, ang(to)-1)}" stroke="${zz.col}" stroke-width="${on?14:7}" fill="none" opacity="${on?1:.3}"/>`;
+    from = to;
+  });
+  const [nx,ny] = polar(216, ang(o.hr));
   const beatDur = (60 / o.hr).toFixed(2);
+  const beat = 'l18 0 l6 -5 l6 5 l8 0 l3 6 l4 -38 l4 50 l4 -18 l12 0 l8 -8 l8 8 l15 0';
+  let ecg = 'M0 0'; for (let i = 0; i < 6; i++) ecg += beat;
   return `<svg viewBox="0 0 480 480">
     ${defs(t,id)}
-    <clipPath id="ecgc${id}"><circle cx="240" cy="240" r="186"/></clipPath>
+    <clipPath id="ecgc${id}"><rect x="96" y="270" width="288" height="100"/></clipPath>
     <circle cx="240" cy="240" r="240" fill="#000"/>
     ${gauge}
-    <circle cx="${nx}" cy="${ny}" r="11" fill="#fff" stroke="#000" stroke-width="3"/>
-    <text x="${polar(184,-128)[0]}" y="${polar(184,-128)[1]}" font-family="Orbitron" font-size="11" fill="#4f7a45" text-anchor="middle">40</text>
-    <text x="${polar(184,128)[0]}" y="${polar(184,128)[1]}" font-family="Orbitron" font-size="11" fill="#4f7a45" text-anchor="middle">200</text>
-    <!-- DNA helix backdrop -->
-    <g opacity=".22" clip-path="url(#ecgc${id})">
-      ${Array.from({length:22},(_,i)=>{const y=40+i*19, s=Math.sin(i*.6)*90; return `<line x1="${240-s}" y1="${y}" x2="${240+s}" y2="${y}" stroke="${t.text}" stroke-width="2"/><circle cx="${240-s}" cy="${y}" r="4" fill="${t.text}"/><circle cx="${240+s}" cy="${y}" r="4" fill="${t.text}"/>`;}).join('')}
+    <circle cx="${nx}" cy="${ny}" r="15" fill="${z.col}" opacity=".35" style="transform-origin:${nx}px ${ny}px;animation:hrp${id} ${beatDur}s ease-out infinite"/>
+    <circle cx="${nx}" cy="${ny}" r="8" fill="#fff"/>
+    <style>@keyframes hrp${id}{0%{transform:scale(1.5)}40%,100%{transform:scale(.8)}}</style>
+    <text x="240" y="232" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="96" fill="#eaffe0">${o.hr}</text>
+    <text x="240" y="274" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="12" letter-spacing="5" fill="#6f9a66">BPM</text>
+    <g clip-path="url(#ecgc${id})"><g transform="translate(96 330)"><path d="${ecg}" ${anim('ecg',2.4)} fill="none" stroke="${z.col}" stroke-width="2.5" stroke-linejoin="round"/></g></g>
+    <text x="240" y="400" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="12" letter-spacing="4" fill="${z.col}">${z.tag}</text>
+  </svg>`;
+}
+
+// DNA Missions (static mock of the app's Codex screen): rank and XP, the active mission with
+// its reward alien as a mystery hologram that fills in as you progress, and the reward.
+function missionsSVG(o) {
+  const id = ++UID, t = THEMES.green, col = t.text, dim = '#6f9a66';
+  const a = ALIENS[o.alien ?? 10], p = o.progress ?? .4;
+  const txt = (y, s, size, fill, weight = 700, ls = 2) => `<text x="240" y="${y}" text-anchor="middle" font-family="Orbitron" font-weight="${weight}" font-size="${size}" letter-spacing="${ls}" fill="${fill}">${s}</text>`;
+  const cut = 170 + 120 * (1 - p);
+  return `<svg viewBox="0 0 480 480">
+    ${defs(t,id)}
+    <clipPath id="rev${id}"><rect x="0" y="${cut}" width="480" height="480"/></clipPath>
+    <circle cx="240" cy="240" r="240" fill="#000"/>
+    ${txt(62, 'DNA MISSIONS', 10, dim, 700, 3)}
+    ${txt(96, 'ROOKIE', 26, '#eaffe0', 900, 2)}
+    <line x1="120" y1="110" x2="360" y2="110" stroke="#1c2a1a" stroke-width="7" stroke-linecap="round"/>
+    <line x1="120" y1="110" x2="${120 + 240 * .25}" y2="110" stroke="${col}" stroke-width="7" stroke-linecap="round"/>
+    ${txt(130, '100 / 400 XP → HERO', 9, dim, 700, 1)}
+    <rect x="70" y="146" width="340" height="300" rx="34" fill="${col}" fill-opacity=".06" stroke="${col}" stroke-width="2"/>
+    ${txt(170, 'MISSION 2 / 40', 10, col, 700, 2)}
+    <g transform="translate(240 230)">
+      <circle r="60" fill="${t.glow}" opacity=".12"/>
+      <g transform="translate(-50 -50)" fill="#16201a">${a.g}</g>
     </g>
-    <!-- pulsing omnitrix core as the heart -->
-    <g style="transform-origin:240px 118px;animation:hrp${id} ${beatDur}s ease-out infinite;animation-delay:-${((performance.now()/1000)%beatDur).toFixed(3)}s">
-      <circle cx="240" cy="118" r="34" fill="${t.glow}" opacity=".35" filter="url(#blur${id})"/>
-      <circle cx="240" cy="118" r="28" fill="url(#core${id})" stroke="#000" stroke-width="3"/>
-      <polygon points="237,118 222,90 212,90 212,146 222,146" fill="#050805"/>
-      <polygon points="243,118 258,90 268,90 268,146 258,146" fill="#050805"/>
-    </g>
-    <style>@keyframes hrp${id}{0%{transform:scale(1)}12%{transform:scale(1.14)}30%{transform:scale(1)}}</style>
-    <text x="240" y="176" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="12" letter-spacing="5" fill="#6f9a66">BIO-SCAN</text>
-    <g clip-path="url(#ecgc${id})">
-      <g transform="translate(0 262)"><path d="${ecg}" ${anim('ecg',2.4)} fill="none" stroke="${t.text}" stroke-width="3" stroke-linejoin="round" filter="url(#glow${id})"/></g>
-    </g>
-    <text x="240" y="236" text-anchor="middle" font-family="Orbitron" font-weight="900" font-size="74" fill="#eaffe0" filter="url(#glow${id})">${o.hr}</text>
-    <text x="240" y="316" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="11" letter-spacing="4" fill="#6f9a66">ZONE ${zi+1} · ${z.tag}</text>
-    ${emblem(ALIENS.find(a=>a.name===z.name), 196, 350, 30, zoneCols[zi])}
-    <text x="216" y="356" font-family="Orbitron" font-weight="900" font-size="15" letter-spacing="2" fill="${zoneCols[zi]}">${z.name}</text>
-    <text x="150" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">MIN</text>
-    <text x="150" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">54</text>
-    <text x="240" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">REST</text>
-    <text x="240" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">61</text>
-    <text x="330" y="398" text-anchor="middle" font-family="Orbitron" font-size="10" fill="#4f7a45">MAX</text>
-    <text x="330" y="414" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="15" fill="#9dff7a">148</text>
+    <g clip-path="url(#rev${id})"><g transform="translate(190 180)" fill="${col}">${a.g}</g></g>
+    ${p < 1 ? txt(246, '?', 34, col + '99', 900, 0) : ''}
+    ${txt(316, 'DNA TRACE · ' + a.species.toUpperCase(), 11, '#eaffe0', 900, 1)}
+    <text x="104" y="344" font-family="Orbitron" font-weight="700" font-size="9" letter-spacing="1" fill="${dim}">TRANSFORM 2×</text>
+    <line x1="104" y1="356" x2="376" y2="356" stroke="#1c2a1a" stroke-width="6" stroke-linecap="round"/>
+    <line x1="104" y1="356" x2="${104 + 272 * p}" y2="356" stroke="${col}" stroke-width="6" stroke-linecap="round"/>
+    ${txt(392, 'REWARD', 8, dim, 700, 2)}
+    ${txt(412, '+100 XP · NEW ALIEN', 11, col, 900, 1)}
   </svg>`;
 }
 

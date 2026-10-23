@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.5.3 (2026-10-23)
+
+Documentation only. The apps are unchanged and stay at v0.5.2.
+
+### Changed
+- **README:** covers DNA Missions, Bio-scan, tiles, the timeout face, edge-swipe back, the full settings list and turning off wireless debugging.
+- **PLAN.md:** rewritten to match what shipped. It drops the aliens-as-watch-tools plan and the old face layout, and adds DNA Missions, the minimal Bio-scan, tiles, the complication bridge and milestones through v0.5.
+- **Release guide:** `dev` is now the default branch. The guide documents the `feat/`, `fix/` and `docs/` branches, the version and changelog commits, and doc-only patches.
+- **Design prototype** (`design/index.html`):
+  - The selector is just the hologram.
+  - The dossier no longer lists a watch tool.
+  - The Bio-scan matches the minimal watch screen.
+  - New cards: the red timeout face and DNA Missions.
+  - The live demo plays the 10 s red timeout after alien form, and Master Control triples alien time.
+
+
 ## v0.5.2 (2026-10-23)
 
 ### Fixed

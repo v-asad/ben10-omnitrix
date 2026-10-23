@@ -95,7 +95,7 @@
 <header>
   <h1>OMNITRIX&nbsp;OS<small>A BEN 10 WATCH EXPERIENCE · GALAXY WATCH8 44MM · 480 × 480 SUPER AMOLED</small></h1>
 </header>
-<p class="lede">An interactive prototype of the whole system: the face, the dial that pops up to pick an alien, the slam to transform, the timeout, and the four energy states that follow your battery. Everything below is rendered at the watch's real 480 px resolution and scaled down.</p>
+<p class="lede">An interactive prototype of the whole system: the face, the dial that pops up to pick an alien, the slam to transform, the red timeout after you switch back, and the energy states that follow your battery. Everything below is rendered at the watch's real 480 px resolution and scaled down. The watch app carries 50 aliens with real artwork; this page uses 13 original emblems.</p>
 
 <h2>01 · Live prototype</h2>
 <section class="proto">
@@ -107,7 +107,7 @@
       <div class="row" style="justify-content:space-between;margin-top:6px">
         <span class="state-pill" id="batLabel">64%</span><span class="state-pill" id="stateLabel">OMNITRIX · STANDARD</span>
       </div>
-      <p>Above 90% the face unlocks <b>Master Control</b>. Between 20 and 90 it runs the classic <b>green</b> Omnitrix. Below 20 it goes into <b>red recharge</b>, the way the watch looks when it times out and Ben turns back.</p>
+      <p>Above 90% the face unlocks <b>Master Control</b>: every alien available and alien time tripled. Between 20 and 90 it runs the classic <b>green</b> Omnitrix. Below 20 it goes <b>red</b> and transforming is locked. The face also turns red for a short <b>timeout</b> every time you switch back from an alien.</p>
     </div>
     <div class="panel">
       <h3>INTERACT</h3>
@@ -120,16 +120,17 @@
       </div>
       <div class="row" style="margin-top:10px">
         <button id="bHR">♥ BIO-SCAN</button>
+        <button id="bCodex">DNA MISSIONS</button>
         <button id="bAOD">AMBIENT</button>
         <button id="bHome">HOME</button>
         <button id="bRevert">REVERT TO HUMAN</button>
       </div>
-      <p>Click the watch face to raise the dial. While it's up, drag around the edge (the watch's touch bezel) or scroll the mouse wheel to spin through the aliens, then click the centre to slam it. Swipe up (or <span class="kbd">↑</span>) for the alien's dossier. Alien mode lasts <b>20 s</b> in this demo (configurable on the watch) and ends with the timeout beeps. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
+      <p>Click the watch face to raise the dial. While it's up, drag around the edge (the watch's touch bezel) or scroll the mouse wheel to spin through the aliens, one per click, then click the centre to slam it. Swipe up (or <span class="kbd">↑</span>) for the alien's dossier. Alien mode lasts <b>20 s</b> in this demo (10 min by default on the watch) and ends with the timeout beeps, then a <b>10 s</b> red timeout. <span class="kbd">← →</span> <span class="kbd">SPACE</span> also work.</p>
     </div>
     <div class="panel">
       <h3>SOUND</h3>
       <div class="row"><button id="bSound">🔇 SOUND OFF</button></div>
-      <p>Synthesized cues: dial-up chirp, selector clicks, the transform whoosh and the four-beep timeout. On the watch these go with haptic patterns.</p>
+      <p>Synthesized cues: dial-up chirp, selector clicks, the transform whoosh and the four-beep timeout. On the watch these only play in Sound mode, follow the watch volume, and go with haptic patterns.</p>
     </div>
   </div>
 </section>
@@ -144,9 +145,9 @@
 <script>
 /* =========================================================
    LIVE PROTOTYPE STATE MACHINE
-   HOME ──tap──▶ SELECT ──slam──▶ (flash) ──▶ ALIEN ──timeout──▶ (red flash) ──▶ HOME
+   HOME ──tap──▶ SELECT ──slam──▶ (flash) ──▶ ALIEN ──timeout/revert──▶ (red flash) ──▶ RED TIMEOUT ──▶ HOME
    ========================================================= */
-const S = { mode:'home', alien:0, battery:64, hr:72, steps:6842, alienUntil:0, alienDur:20, sound:false, ringRot:0, ringTarget:0, changedAt:0, enteredAt:0 };
+const S = { mode:'home', alien:0, battery:64, hr:72, steps:6842, alienUntil:0, alienDur:20, timeoutUntil:0, timeoutDur:10, sound:false, ringRot:0, ringTarget:0, changedAt:0, enteredAt:0 };
 const live = document.getElementById('live');
 let actx;
 function tone(freq, dur, type='square', when=0, vol=.06) {
@@ -171,19 +172,21 @@ function render() {
   const theme = themeFor(S.battery);
   if (S.mode === 'alien' && Date.now() >= S.alienUntil) return timeout();
   const remaining = Math.max(0, (S.alienUntil - Date.now())/1000);
+  const cooling = Math.max(0, (S.timeoutUntil - Date.now())/1000);
   const o = { time:now, battery:S.battery, hr:S.hr, steps:S.steps, alien:S.alien, theme };
   let html;
   switch (S.mode) {
-    case 'home':   html = faceSVG(o); break;
+    case 'home':   html = cooling > 0 ? faceSVG({ ...o, theme:'red', timeout:cooling }) : faceSVG(o); break;
     case 'select': html = selectorSVG({ ...o, ringRot:S.ringRot, changedAt:S.changedAt, enteredAt:S.enteredAt }); break;
-    case 'alien':  html = faceSVG({ ...o, theme:'alien', countdown: remaining / S.alienDur, remaining }); break;
+    case 'alien':  html = faceSVG({ ...o, theme:'alien', countdown: remaining / (S.alienDurNow || S.alienDur), remaining }); break;
     case 'dossier': html = dossierSVG({ ...o, enteredAt:S.enteredAt }); break;
     case 'hr':     html = hrSVG(o); break;
+    case 'codex':  html = missionsSVG({ alien:10, progress:.5 }); break;
     case 'aod':    html = ambientSVG(o); break;
     default: return;
   }
   live.innerHTML = html;
-  const label = { home: THEMES[theme].label, select:'SELECTING DNA', dossier:`${ALIENS[S.alien].name} · DOSSIER`, alien:`${ALIENS[S.alien].name} · ALIEN FORM`, hr:'BIO-SCAN', aod:'AMBIENT' }[S.mode];
+  const label = { home: cooling > 0 ? 'TIMEOUT' : THEMES[theme].label, codex:'DNA MISSIONS', select:'SELECTING DNA', dossier:`${ALIENS[S.alien].name} · DOSSIER`, alien:`${ALIENS[S.alien].name} · ALIEN FORM`, hr:'BIO-SCAN', aod:'AMBIENT' }[S.mode];
   document.getElementById('stateLabel').textContent = label;
 }
 
@@ -194,6 +197,7 @@ function flash(color, label, ms, then) {
 }
 function dialUp() {
   if (S.mode === 'select') return slam();
+  if (S.timeoutUntil > Date.now()) { sfx.locked(); return; }
   S.mode = 'select'; S.enteredAt = S.changedAt = performance.now(); sfx.dial(); render();
 }
 function openDossier() {
@@ -223,11 +227,12 @@ function slam() {
   if (S.mode !== 'select') return dialUp();
   if (themeFor(S.battery) === 'red') { sfx.locked(); live.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'none'}],{duration:240,iterations:2}); return; }
   sfx.slam();
-  flash('#5dff2a', ALIENS[S.alien].name + '!', 650, () => { S.mode = 'alien'; S.alienUntil = Date.now() + S.alienDur*1000; render(); });
+  const dur = S.alienDur * (themeFor(S.battery) === 'master' ? 3 : 1);   // Master Control triples alien time
+  flash('#5dff2a', ALIENS[S.alien].name + '!', 650, () => { S.mode = 'alien'; S.alienUntil = Date.now() + dur*1000; S.alienDurNow = dur; render(); });
 }
 function timeout() {
   sfx.timeout();
-  flash('#ff2a1a', 'TIMED OUT', 900, () => { S.mode = 'home'; render(); });
+  flash('#ff2a1a', 'TIMED OUT', 900, () => { S.mode = 'home'; S.timeoutUntil = Date.now() + S.timeoutDur*1000; render(); });
 }
 
 // Touch bezel: drag around the edge and the carousel follows your finger, snapping
@@ -267,7 +272,7 @@ live.addEventListener('pointerup', e => {
 live.addEventListener('click', e => {
   if (S.suppressClick) { S.suppressClick = false; return; }
   if (S.mode === 'alien' || S.mode === 'flash') return;
-  if (S.mode === 'hr' || S.mode === 'aod') { S.mode = 'home'; return render(); }
+  if (S.mode === 'hr' || S.mode === 'aod' || S.mode === 'codex') { S.mode = 'home'; return render(); }
   if (S.mode === 'dossier') { S.mode = 'select'; return render(); }
   S.mode === 'select' ? slam() : dialUp();
 });
@@ -283,6 +288,7 @@ const $ = id => document.getElementById(id);
 $('bDial').onclick = dialUp; $('bNext').onclick = () => step(1); $('bPrev').onclick = () => step(-1); $('bSlam').onclick = slam;
 $('bInfo').onclick = openDossier;
 $('bHR').onclick = () => { S.mode = 'hr'; render(); };
+$('bCodex').onclick = () => { S.mode = 'codex'; render(); };
 $('bAOD').onclick = () => { S.mode = 'aod'; render(); };
 $('bHome').onclick = () => { S.mode = 'home'; render(); };
 $('bRevert').onclick = () => { if (S.mode === 'alien') { S.alienUntil = 0; render(); } };
@@ -301,26 +307,28 @@ function buildStatic() {
 const fixed = new Date(2026, 9, 22, 10, 10, 38);
 const base = { time:fixed, hr:72, steps:6842, alien:0 };
 const cards = [
-  ['STANDARD · 20–90%', 'Minimal classic Omnitrix. Big glowing time in the black wedges, with the hourglass waist as the colon. The date sits in the top bulb and the activation button in the bottom. The energy slits show battery.', faceSVG({...base, theme:'green', battery:64})],
-  ['MASTER CONTROL · >90%', 'Gold-chrome bezel, all four energy slits lit, the full roster orbiting the dial and a light sweep across the core. Every alien is unlocked with no timeout.', faceSVG({...base, theme:'master', battery:96})],
-  ['RECHARGE · <20%', 'Red core with a flicker, scan line and blinking slit. Transforming is locked; you get a buzz and a shake if you try.', faceSVG({...base, theme:'red', battery:12, hr:68})],
-  ['ALIEN FORM', 'The white badge Ben wears as an alien. The top bulb shows who you are and the bottom bulb counts down your alien time, mirrored on the bezel arc.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
-  ['DIAL UP · SELECT', 'Tap the core and it "pops up" into a hologram. Swipe the touch bezel to cycle DNA. Each alien also launches a watch tool.', selectorSVG({...base, theme:'green', battery:64, alien:2})],
-  ['SELECT · LOCKED', 'At under 20% the hologram dims to dead red and the dial says it needs a charge.', selectorSVG({...base, theme:'red', battery:12, alien:1})],
-  ['DNA DOSSIER', 'Swipe up on the hologram for the full profile: species, home world, powers, weakness, and the watch tool it opens. Stat arcs sit in the bezel.', dossierSVG({...base, theme:'green', battery:64, alien:3})],
-  ['BIO-SCAN · HEART RATE', 'A mini Omnitrix core beats in time with your pulse. A live ECG runs over a DNA helix, and the zone gauge names each zone after an alien.', hrSVG({...base, hr:132})],
-  ['AMBIENT / AOD', 'Powered-down Omnitrix: neon-tube digits, dimly glowing bulbs and battery slits, all low brightness to save the battery.', ambientSVG({...base})],
+  ['STANDARD · 20–90%', 'The minimal Omnitrix: a big green hourglass with the time and date printed small in the top bulb, and a seconds ring around the edge. Tap anywhere to raise the dial.', faceSVG({...base, theme:'green', battery:64})],
+  ['MASTER CONTROL · >90%', 'Brighter lime core with a light sweep and the roster orbiting the dial. Every alien is available, whatever your DNA Missions progress, and alien time is tripled.', faceSVG({...base, theme:'master', battery:96})],
+  ['LOW ENERGY · <20%', 'Red core with a flicker and a scan line. Transforming is locked; you get a buzz and a shake if you try.', faceSVG({...base, theme:'red', battery:12, hr:68})],
+  ['ALIEN FORM', 'The white badge Ben wears as an alien. The top bulb shows who you are and the bottom bulb counts down your alien time, mirrored on the seconds ring.', faceSVG({...base, theme:'alien', battery:64, alien:0, countdown:.62, remaining:372})],
+  ['TIMEOUT', 'Switch back from an alien, by timing out or holding the core, and the face goes red with a countdown (10 s by default, set in Settings) before the Omnitrix is ready again.', faceSVG({...base, theme:'red', battery:64, timeout:7})],
+  ['DIAL UP · SELECT', 'Just the hologram. Turn the bezel or drag the ring to cycle DNA, one alien per click, in DNA Missions order so your unlocked aliens sit together. Tap to transform.', selectorSVG({...base, theme:'green', battery:64, alien:2})],
+  ['SELECT · LOCKED', 'Low battery, a running timeout or an alien you haven\'t earned yet: the hologram dims and tapping gives the "denied" buzz.', selectorSVG({...base, theme:'red', battery:12, alien:1})],
+  ['DNA DOSSIER', 'Swipe up on the hologram for the full profile: species, home world, powers and weakness, with stat arcs in the bezel.', dossierSVG({...base, theme:'green', battery:64, alien:3})],
+  ['DNA MISSIONS', 'Earn the other 40 aliens through missions: walk, transform, hold alien form to the end, try new aliens, run Bio-scans, keep a streak. XP ranks you from Rookie to Ben 10,000, and Alien X is the final mission.', missionsSVG({ alien:10, progress:.5 })],
+  ['BIO-SCAN · HEART RATE', 'A minimal heart monitor: zone gauge on the bezel with a needle that pulses with each beat, your BPM, a live pulse trace and the zone name.', hrSVG({...base, hr:132})],
+  ['AMBIENT / AOD', 'Powered-down Omnitrix: thin neon outlines, dim bulbs and the hour ticks, kept under 15% lit pixels to save the battery.', ambientSVG({...base})],
 ];
 $('gallery').innerHTML = cards.map(([h,p,svg]) => `<div class="card"><div class="watch"><div class="screen">${svg}</div></div><h4>${h}</h4><p>${p}</p></div>`).join('');
 
 const frames = [
-  ['01 · IDLE', 'Green face, time and pulse.', faceSVG({...base, theme:'green', battery:64})],
+  ['01 · IDLE', 'Green face, time and date.', faceSVG({...base, theme:'green', battery:64})],
   ['02 · TAP', 'The core pops up with a "chk-ching" haptic.', selectorSVG({...base, theme:'green', battery:64, alien:0})],
-  ['03 · TWIST', 'Bezel clicks through DNA, one tick per alien.', selectorSVG({...base, theme:'green', battery:64, alien:1})],
+  ['03 · TWIST', 'The bezel clicks through DNA, one alien per click.', selectorSVG({...base, theme:'green', battery:64, alien:1})],
   ['04 · SLAM', 'Press. A green flash floods the screen.', flashSVG('#5dff2a','XLR8!')],
   ['05 · ALIEN', 'The white badge appears and the timer starts.', faceSVG({...base, theme:'alien', battery:64, alien:1, countdown:.98, remaining:588})],
-  ['06 · TIMEOUT', 'Four beeps, then a red flash.', flashSVG('#ff2a1a','TIMED OUT')],
-  ['07 · RECHARGE', 'Back to human for a cooldown.', faceSVG({...base, theme:'red', battery:64})],
+  ['06 · TIMED OUT', 'Four beeps, then a red flash.', flashSVG('#ff2a1a','TIMED OUT')],
+  ['07 · TIMEOUT', 'Back to human: a short red countdown, then the Omnitrix is ready.', faceSVG({...base, theme:'red', battery:64, timeout:7})],
 ];
 $('story').innerHTML = frames.map(([n,p,svg],i) => `${i?'<div class="arrow">›</div>':''}<div class="frame"><div class="watch"><div class="screen">${svg}</div></div><div class="n">${n}</div><p>${p}</p></div>`).join('');
 

@@ -47,7 +47,10 @@ class DnaCodex(context: Context) {
 
     fun markSeen() = prefs.edit { putInt(KEY_SEEN, unlockedCount) }
 
-    fun addBonus(amount: Float = 1f) { dna += amount }
+    fun addBonus(amount: Float = 1f) {
+        dna += amount
+        dev.omnitrix.app.tiles.TileKit.refresh(app, dev.omnitrix.app.tiles.CodexTileService::class.java)
+    }
 
     /**
      * Folds new steps from the hardware counter into DNA. The counter is cumulative since boot, so
@@ -61,7 +64,10 @@ class DnaCodex(context: Context) {
             else -> counter - last
         }
         prefs.edit { putFloat(KEY_LAST_COUNTER, counter) }
-        if (delta > 0f) dna = max(0f, dna + delta / 1000f)
+        if (delta > 0f) {
+            dna = max(0f, dna + delta / 1000f)
+            dev.omnitrix.app.tiles.TileKit.refresh(app, dev.omnitrix.app.tiles.CodexTileService::class.java)
+        }
     }
 
     /** Reads the step counter once (registering briefly) and folds it in; [done] runs either way. */

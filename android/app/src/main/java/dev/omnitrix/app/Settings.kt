@@ -38,6 +38,16 @@ class Settings(context: Context) {
         get() = prefs.getBoolean("diagnostics", true)
         set(v) = prefs.edit { putBoolean("diagnostics", v) }
 
+    /** DNA Codex locks: off = every alien available. */
+    var codex: Boolean
+        get() = prefs.getBoolean("codex", true)
+        set(v) = prefs.edit { putBoolean("codex", v) }
+
+    /** For Bio-scan heart-rate zones (max HR ≈ 220 − age). */
+    var age: Int
+        get() = prefs.getInt("age", 30)
+        set(v) = prefs.edit { putInt("age", v) }
+
     fun alienTimeMillis(energy: Energy): Long = when (energy) {
         Energy.RECHARGE -> 0L
         Energy.MASTER -> alienMinutes * 3 * 60_000L
@@ -47,5 +57,6 @@ class Settings(context: Context) {
     companion object {
         val ALIEN_MINUTES = listOf(1, 3, 5, 10, 15)
         val COOLDOWN_MINUTES = listOf(0, 1, 2, 5)
+        val AGES = (15..75 step 5).toList()
     }
 }

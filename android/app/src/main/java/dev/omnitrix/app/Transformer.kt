@@ -39,6 +39,7 @@ object Transformer {
             schedule(context, state.cooldownUntil, TimeoutReceiver.ACTION_RECHARGED)
         }
         refreshFace(context)
+        DnaCodex(context).addBonus()          // a full transformation earns DNA
         Haptics.timeout(context)
         Sounds.play(context, Sounds.Cue.TIMEOUT)
         Diagnostics.log(context, "timeout", "cooldown_min=${cooldown / 60_000}")

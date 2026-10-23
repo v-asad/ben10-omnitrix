@@ -45,11 +45,12 @@ object Diagnostics {
         return (if (level < 0) -1 else level * 100 / scale) to plugged
     }
 
-    /** (Re)starts the ~15-minute sampler; cheap to call repeatedly. */
+    /** (Re)starts the ~15-minute sampler (battery log + DNA Codex steps); cheap to call repeatedly. */
     fun schedule(context: Context) {
         val alarms = context.getSystemService(AlarmManager::class.java)
         val intent = sampler(context)
-        if (!Settings(context).diagnostics) { alarms.cancel(intent); return }
+        val settings = Settings(context)
+        if (!settings.diagnostics && !settings.codex) { alarms.cancel(intent); return }
         alarms.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
             AlarmManager.INTERVAL_FIFTEEN_MINUTES, intent)
     }
@@ -58,7 +59,11 @@ object Diagnostics {
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
     class SampleReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) = log(context, "sample")
+        override fun onReceive(context: Context, intent: Intent) {
+            log(context, "sample")
+            val pending = goAsync()
+            DnaCodex(context).sampleSteps { pending.finish() }
+        }
     }
 
     /** Summary for the in-app Battery screen. */

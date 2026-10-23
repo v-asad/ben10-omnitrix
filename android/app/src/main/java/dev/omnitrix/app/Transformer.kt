@@ -21,28 +21,35 @@ object Transformer {
         Diagnostics.log(context, "transform", Aliens.all[alien].slug)
     }
 
-    /** Voluntary revert (hold the core): no recharge penalty. */
+    /** Switching back by holding the core: back to human, then the red timeout face. */
     fun revert(context: Context) {
         OmnitrixState(context).set(null)
         context.getSystemService(AlarmManager::class.java).cancel(alarm(context, TimeoutReceiver.ACTION_TIMEOUT))
+        startTimeout(context)
         refreshFace(context)
         Diagnostics.log(context, "revert")
     }
 
-    /** Alien time ran out: four beeps, back to human, then the Omnitrix recharges. */
-    fun timeout(context: Context) {
-        val state = OmnitrixState(context)
-        state.set(null)
-        val cooldown = Settings(context).cooldownMinutes * 60_000L
-        if (cooldown > 0) {
-            state.cooldownUntil = System.currentTimeMillis() + cooldown
+    /** Red timeout after switching back (length from Settings, 0 = none). */
+    private fun startTimeout(context: Context): Long {
+        val length = Settings(context).timeoutSeconds * 1000L
+        if (length > 0) {
+            val state = OmnitrixState(context)
+            state.cooldownUntil = System.currentTimeMillis() + length
             schedule(context, state.cooldownUntil, TimeoutReceiver.ACTION_RECHARGED)
         }
+        return length
+    }
+
+    /** Alien time ran out: four beeps, back to human, then the red timeout face. */
+    fun timeout(context: Context) {
+        OmnitrixState(context).set(null)
+        val timeout = startTimeout(context)
         refreshFace(context)
         DnaCodex(context).addBonus()          // a full transformation earns DNA
         Haptics.timeout(context)
         Sounds.play(context, Sounds.Cue.TIMEOUT)
-        Diagnostics.log(context, "timeout", "cooldown_min=${cooldown / 60_000}")
+        Diagnostics.log(context, "timeout", "timeout_s=${timeout / 1000}")
     }
 
     /** Recharge finished: the Omnitrix is ready again. */

@@ -86,7 +86,7 @@
               <Variant mode="AMBIENT" target="alpha" value="0"/>
 <PartImage x="0" y="0" width="480" height="480" ><Image resource="base_red"/></PartImage>
 <Condition><Expressions><Expression name="c">[IS_24_HOUR_MODE] == 1</Expression></Expressions><Compare expression="c"><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#2A0202"><Template>%s:%s<Parameter expression="[HOUR_0_23_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Compare><Default><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#2A0202"><Template>%s:%s<Parameter expression="[HOUR_1_12_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Default></Condition>
-<PartText x="150" y="157" width="180" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="10" color="#2A0202" letterSpacing="0.2">RECHARGING</Font></Text></PartText>
+<PartText x="150" y="157" width="180" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="11" color="#2A0202" letterSpacing="0.3">TIMEOUT</Font></Text></PartText>
 <PartText x="170" y="318" width="140" height="32"><Text align="CENTER"><Font family="orbitron_black" size="22" color="#2A0202"><Template>%s<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></Text></PartText>
             </Group>
           </Compare>

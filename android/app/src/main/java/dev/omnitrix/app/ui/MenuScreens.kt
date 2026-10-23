@@ -96,7 +96,10 @@ fun SettingsScreen(energy: Energy, onBack: () -> Unit) {
     val context = LocalContext.current
     val settings = remember { Settings(context) }
     var version by remember { mutableIntStateOf(0) }       // bump to re-read after a change
-    fun change(block: () -> Unit) { block(); version++ }
+    fun change(block: () -> Unit) {
+        block(); version++
+        dev.omnitrix.app.tiles.TileKit.refresh(context, dev.omnitrix.app.tiles.SettingsTileService::class.java)
+    }
     version.let { }                                          // read so changes recompose
 
     fun <T> next(list: List<T>, current: T) = list[(list.indexOf(current) + 1) % list.size]
@@ -107,8 +110,8 @@ fun SettingsScreen(energy: Energy, onBack: () -> Unit) {
                 value = "${settings.alienMinutes} MIN", note = "×3 IN MASTER CONTROL")
         }
         item(key = "cool$version") {
-            Row({ change { settings.cooldownMinutes = next(Settings.COOLDOWN_MINUTES, settings.cooldownMinutes) } }, "RECHARGE", energy,
-                value = if (settings.cooldownMinutes == 0) "OFF" else "${settings.cooldownMinutes} MIN", note = "AFTER A TIMEOUT")
+            Row({ change { settings.timeoutSeconds = next(Settings.TIMEOUT_SECONDS, settings.timeoutSeconds) } }, "TIMEOUT", energy,
+                value = Settings.timeoutLabel(settings.timeoutSeconds), note = "RED FACE AFTER SWITCHING BACK")
         }
         item(key = "anim$version") {
             Row({ change { settings.animations = next(Settings.Animations.entries, settings.animations) } }, "ANIMATIONS", energy,

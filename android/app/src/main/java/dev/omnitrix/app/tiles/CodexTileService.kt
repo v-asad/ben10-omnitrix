@@ -20,7 +20,7 @@ import dev.omnitrix.app.tiles.TileKit.GREEN
 import dev.omnitrix.app.tiles.TileKit.WHITE
 import dev.omnitrix.app.tiles.TileKit.text
 
-/** DNA Codex at a glance: aliens unlocked, a ring of progress to the next, steps to go. */
+/** DNA Missions at a glance: rank, the active mission's progress ring and its first objective. */
 class CodexTileService : TileService() {
 
     override fun onTileRequest(requestParams: RequestBuilders.TileRequest) =
@@ -33,8 +33,9 @@ class CodexTileService : TileService() {
         val codex = DnaCodex(this)
         val total = Aliens.size
         val unlocked = codex.unlockedCount
-        val all = unlocked >= total || !Settings(this).codex
-        val sweep = if (all) 360f else 360f * codex.progressToNext
+        val mission = codex.active
+        val all = mission == null || !Settings(this).codex
+        val sweep = if (all) 360f else 360f * codex.missionProgress
         val ring = Arc.Builder()
             .setAnchorAngle(degrees(0f))
             .setAnchorType(LayoutElementBuilders.ARC_ANCHOR_START)
@@ -43,14 +44,15 @@ class CodexTileService : TileService() {
             .build()
         val column = Column.Builder()
             .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
-            .addContent(text("DNA CODEX", 11f, DIM, spacing = 0.2f))
-            .addContent(text(if (unlocked >= total) "BEN 10,000" else "$unlocked / $total", 34f, WHITE))
+            .addContent(text(codex.rank.title, 11f, DIM, spacing = 0.2f))
+            .addContent(text("$unlocked / $total", 34f, WHITE))
             .addContent(TileKit.spacer(6f))
         if (all) {
             column.addContent(text(if (Settings(this).codex) "EVERY ALIEN UNLOCKED" else "LOCKS OFF · ALL ALIENS", 10f, GREEN, spacing = 0.1f))
         } else {
-            column.addContent(text("NEXT: ${Aliens.all[unlocked].name}", 11f, GREEN, spacing = 0.1f))
-            column.addContent(text("%,d STEPS".format(codex.stepsToNext), 11f, DIM, spacing = 0.1f))
+            val goal = mission!!.goals.first()
+            column.addContent(text("MISSION ${mission.number} · ${(codex.missionProgress * 100).toInt()}%", 11f, GREEN, spacing = 0.1f))
+            column.addContent(text("%,d / %,d".format(codex.progress(goal), goal.target) + " " + goal.type.unit, 10f, DIM, spacing = 0.1f))
         }
         return Box.Builder()
             .setWidth(expand()).setHeight(expand())

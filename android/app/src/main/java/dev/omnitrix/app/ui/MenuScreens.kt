@@ -81,7 +81,7 @@ private fun Row(onClick: (() -> Unit)?, label: String, energy: Energy, value: St
 fun MenuScreen(energy: Energy, onBioScan: () -> Unit, onCodex: () -> Unit, onSettings: () -> Unit, onBattery: () -> Unit, onBack: () -> Unit) {
     OmnitrixList("OMNITRIX", energy, onBack) {
         item { Row(onBioScan, "BIO-SCAN", energy, value = "›", note = "HEART RATE") }
-        item { Row(onCodex, "DNA CODEX", energy, value = "›", note = "UNLOCK ALIENS BY MOVING") }
+        item { Row(onCodex, "DNA CODEX", energy, value = "›", note = "MISSIONS · RANKS · NEW DNA") }
         item { Row(onSettings, "SETTINGS", energy, value = "›") }
         item { Row(onBattery, "BATTERY", energy, value = "›", note = "DIAGNOSTICS & DRAIN") }
         item {
@@ -127,7 +127,7 @@ fun SettingsScreen(energy: Energy, onBack: () -> Unit) {
         }
         item(key = "codex$version") {
             Row({ change { settings.codex = !settings.codex; Diagnostics.schedule(context) } }, "DNA CODEX", energy,
-                value = if (settings.codex) "ON" else "OFF", note = if (settings.codex) "EARN ALIENS WITH STEPS" else "ALL ALIENS UNLOCKED")
+                value = if (settings.codex) "ON" else "OFF", note = if (settings.codex) "EARN ALIENS WITH MISSIONS" else "ALL ALIENS UNLOCKED")
         }
         item(key = "age$version") {
             Row({ change { settings.age = next(Settings.AGES, settings.age) } }, "AGE", energy,

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -20,6 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import dev.omnitrix.app.ui.AlienFormScreen
 import dev.omnitrix.app.ui.BatteryScreen
+import dev.omnitrix.app.ui.BioScanScreen
+import dev.omnitrix.app.ui.CodexScreen
+import dev.omnitrix.app.ui.NewDnaSplash
 import dev.omnitrix.app.ui.DossierScreen
 import dev.omnitrix.app.ui.FxCache
 import dev.omnitrix.app.ui.MenuScreen
@@ -68,7 +72,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { SELECTOR, DOSSIER, MENU, SETTINGS, BATTERY }
+private enum class Screen { SELECTOR, DOSSIER, MENU, SETTINGS, BATTERY, BIOSCAN, CODEX }
 
 @Composable
 private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
@@ -77,12 +81,14 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
     val settings = remember { Settings(context) }
     val batteryEnergy = remember { Energy.read(context) }
     var transformation by remember { mutableStateOf(state.current()) }
-    var cooldownUntil by remember { mutableStateOf(state.cooldownUntil) }
+    var cooldownUntil by remember { mutableLongStateOf(state.cooldownUntil) }
     var cursor by remember { mutableIntStateOf(state.lastAlien) }
     var screen by remember { mutableStateOf(Screen.SELECTOR) }
     var transformingInto by remember { mutableStateOf(preview) }
     val art = rememberAlienArt()
     val fx = remember { FxCache() }
+    val codex = remember { DnaCodex(context) }
+    var newDna by remember { mutableStateOf(codex.newlyUnlocked()) }
 
     // While recharging, the Omnitrix shows red and won't transform; unlock when it finishes.
     val recharging = cooldownUntil > System.currentTimeMillis()
@@ -119,8 +125,10 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
                 BackHandler { screen = Screen.SELECTOR }
                 DossierScreen(cursor, energy, art, onClose = { screen = Screen.SELECTOR })
             }
-            screen == Screen.MENU -> MenuScreen(energy, onSettings = { screen = Screen.SETTINGS }, onBattery = { screen = Screen.BATTERY },
-                onBack = { screen = Screen.SELECTOR })
+            screen == Screen.MENU -> MenuScreen(energy, onBioScan = { screen = Screen.BIOSCAN }, onCodex = { screen = Screen.CODEX },
+                onSettings = { screen = Screen.SETTINGS }, onBattery = { screen = Screen.BATTERY }, onBack = { screen = Screen.SELECTOR })
+            screen == Screen.BIOSCAN -> BioScanScreen(energy, art, onBack = { screen = Screen.MENU })
+            screen == Screen.CODEX -> CodexScreen(energy, art, onBack = { newDna = emptyList(); screen = Screen.MENU })
             screen == Screen.SETTINGS -> SettingsScreen(energy, onBack = { screen = Screen.MENU })
             screen == Screen.BATTERY -> BatteryScreen(energy, onBack = { screen = Screen.MENU })
             else -> SelectorScreen(
@@ -129,6 +137,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
                 fx = fx,
                 initialAlien = cursor,
                 rechargeText = if (recharging) "RECHARGING" else null,
+                isUnlocked = { codex.isUnlocked(it, batteryEnergy) },
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->
                     // Transform now so the face is already white when the sequence ends.
@@ -138,6 +147,10 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
                 onOpenDossier = { cursor = it; screen = Screen.DOSSIER },
                 onOpenMenu = { screen = Screen.MENU },
             )
+        }
+        // "NEW DNA ACQUIRED": shown once per unlock, over the selector
+        if (newDna.isNotEmpty() && screen == Screen.SELECTOR && transformation == null && transformingInto == null) {
+            NewDnaSplash(newDna, energy, art, onDone = { codex.markSeen(); newDna = emptyList() })
         }
     }
 }

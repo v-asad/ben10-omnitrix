@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.1 (2026-10-23)
+
+### Changed
+- **Selector order follows DNA Missions:** the bezel ring lists aliens in mission order (the original ten, then Summer Vacation, Alien Force, Ultimate Alien, the Ultimates and Alien X last), so every alien you've unlocked sits together and the next one to earn comes right after them.
+
+
 ## v0.5.0 (2026-10-23)
 
 ### Added

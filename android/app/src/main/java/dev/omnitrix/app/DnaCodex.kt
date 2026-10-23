@@ -71,7 +71,7 @@ object Missions {
         val os = era("OS")
         val groups = listOf(
             "ORIGINAL TEN" to os.take(10), "SUMMER VACATION" to os.drop(10), "ALIEN FORCE" to era("AF"),
-            "ULTIMATE ALIEN" to era("UA"), "ULTIMATE EVOLUTION" to era("ULTIMATE"), "FINAL MISSION" to listOf(alienX),
+            "ULTIMATE ALIEN" to era("UA"), "ULTIMATES" to era("ULTIMATE"), "FINAL MISSION" to listOf(alienX),
         )
         chapters = groups.mapIndexed { i, (title, aliens) -> Chapter(i + 1, title, aliens) }
         unlockOrder = chapters.flatMap { it.aliens }

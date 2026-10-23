@@ -4,7 +4,7 @@
 
 ### Added
 - **DNA Missions:** the DNA Codex is now a mission campaign.
-  - You start with the original ten aliens. The other 40 unlock one mission at a time across five chapters: Summer Vacation, Alien Force, Ultimate Alien, Ultimate Evolution and the **Final Mission**, which unlocks Alien X last.
+  - You start with the original ten aliens. The other 40 unlock one mission at a time across five chapters: Summer Vacation, Alien Force, Ultimate Alien, the Ultimates and the **Final Mission**, which unlocks Alien X last.
   - Missions ask you to walk steps, transform, stay in alien form until it times out, try different aliens, finish Bio-scans or keep up days of 5,000+ steps. The last mission of each chapter has two objectives.
   - Each mission rewards a new alien and XP. XP moves you up the ranks: Rookie → Hero → Plumber → Magister → Master Control → Ben 10,000.
 - **Codex screen redesign:**

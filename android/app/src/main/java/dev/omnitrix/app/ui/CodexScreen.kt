@@ -110,7 +110,11 @@ fun CodexScreen(energy: Energy, art: AlienArt, onBack: () -> Unit) {
         if (energy == Energy.MASTER) item {
             BasicText("MASTER CONTROL: ALL DNA ACTIVE", style = style(main, 8), modifier = Modifier.fillMaxWidth())
         }
-        Missions.chapters.forEach { chapter -> item(key = "ch${chapter.number}") { ChapterRow(chapter, codex, mission, art, main) } }
+        Missions.chapters.forEach { chapter ->
+            item(key = "ch${chapter.number}") {
+                if (chapter.title == "FINAL MISSION") FinalCard(codex, art) else ChapterRow(chapter, codex, mission, art, main)
+            }
+        }
         item { BasicText("‹ BACK", style = style(DIM, 11), modifier = Modifier.fillMaxWidth().clickable(onClick = onBack).padding(vertical = 10.dp)) }
     }
 }
@@ -128,10 +132,10 @@ private fun RankHeader(codex: DnaCodex, main: Color) {
             drawLine(main, Offset(0f, y), Offset(size.width * frac.coerceIn(0f, 1f), y), strokeWidth = size.height, cap = StrokeCap.Round)
         }
         BasicText(
-            (if (next == null) "%,d XP".format(codex.xp) else "%,d / %,d XP → ${next.title}".format(codex.xp, next.xp)) +
-                "   ·   DNA ${codex.unlockedCount}/${Aliens.size}",
+            if (next == null) "%,d XP".format(codex.xp) else "%,d / %,d XP → ${next.title}".format(codex.xp, next.xp),
             style = style(DIM, 8, spacing = 1f), modifier = Modifier.fillMaxWidth().padding(top = 3.dp),
         )
+        BasicText("DNA ${codex.unlockedCount} / ${Aliens.size}", style = style(main, 8, spacing = 1.5f), modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -192,8 +196,8 @@ private fun MissionCard(codex: DnaCodex, m: Mission, art: AlienArt, main: Color)
                 BasicText("%,d / %,d".format(p, goal.target), style = style(DIM, 7, spacing = 0.5f, align = TextAlign.End), modifier = Modifier.fillMaxWidth())
             }
         }
-        BasicText("REWARD  ·  +${m.xp} XP  ·  NEW DNA", style = style(accent, 8, spacing = 1.2f),
-            modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+        BasicText("REWARD", style = style(DIM, 7, spacing = 2f), modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+        BasicText("+%,d XP  ·  NEW ALIEN".format(m.xp), style = style(accent, 9, FontWeight.Black, 1.2f), modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -234,6 +238,62 @@ private fun ChapterRow(chapter: Chapter, codex: DnaCodex, active: Mission?, art:
     }
 }
 
+/** The last mission: Alien X, always on the map so you know what the campaign builds to. */
+@Composable
+private fun FinalCard(codex: DnaCodex, art: AlienArt) {
+    val m = Missions.all.last()
+    val done = codex.allDone
+    val live = codex.active === m
+    LaunchedEffect(Unit) { art.prefetch(m.reward, radius = 0) }
+    val loops = rememberInfiniteTransition(label = "final")
+    val spin = loops.animateFloat(0f, 360f, infiniteRepeatable(tween(9000, easing = LinearEasing)), label = "spin")
+    val holo = remember { hologramFilter(COSMIC) }
+    val dark = remember { ColorFilter.tint(Color(0xFF1A1630)) }
+    Column(
+        Modifier
+            .fillMaxWidth(0.9f)
+            .border(1.5.dp, COSMIC.copy(alpha = if (live || done) 0.9f else 0.5f), RoundedCornerShape(26.dp))
+            .background(Brush.verticalGradient(listOf(COSMIC.copy(alpha = 0.14f), Color.Transparent)), RoundedCornerShape(26.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        BasicText("CH 6 · FINAL MISSION", style = style(COSMIC, 9, spacing = 2f), modifier = Modifier.fillMaxWidth())
+        Box(Modifier.size(80.dp).padding(top = 4.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                art.version.intValue
+                drawCircle(Brush.radialGradient(listOf(COSMIC.copy(alpha = 0.3f), Color.Transparent)), radius = size.minDimension / 2f)
+                // starfield ring
+                val c = center
+                for (i in 0 until 12) {
+                    val a = Math.toRadians((spin.value + i * 30f).toDouble())
+                    val r = size.minDimension * 0.46f
+                    drawCircle(Color.White, radius = if (i % 3 == 0) 2.2f else 1.2f,
+                        center = Offset(c.x + r * kotlin.math.cos(a).toFloat(), c.y + r * kotlin.math.sin(a).toFloat()), alpha = 0.7f)
+                }
+                art.holo(m.reward)?.let { img ->
+                    val s = (size.minDimension * 0.86f).roundToInt()
+                    val off = IntOffset(((size.width - s) / 2f).roundToInt(), ((size.height - s) / 2f).roundToInt())
+                    drawImage(img, srcSize = IntSize(img.width, img.height), dstOffset = off, dstSize = IntSize(s, s),
+                        colorFilter = if (done) holo else dark)
+                }
+            }
+            if (!done) BasicText("?", style = style(COSMIC.copy(alpha = 0.6f), 26, FontWeight.Black))
+        }
+        BasicText(if (done) Aliens.all[m.reward].name else "CELESTIALSAPIEN", style = style(Color.White, 12, FontWeight.Black, 2f),
+            modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
+        BasicText("THE MOST POWERFUL ALIEN", style = style(DIM, 7, spacing = 1f), modifier = Modifier.fillMaxWidth())
+        m.goals.forEach { goal ->
+            val p = if (live) codex.progress(goal) else if (done) goal.target else 0
+            BasicText((if (p >= goal.target) "✓ " else "") + goal.type.describe(goal.target),
+                style = style(if (p >= goal.target) COSMIC else Color(0xFFCBBEF0), 8, spacing = 0.8f), modifier = Modifier.fillMaxWidth().padding(top = 3.dp))
+        }
+        BasicText("REWARD", style = style(DIM, 7, spacing = 2f), modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+        BasicText("+%,d XP  ·  BEN 10,000".format(m.xp), style = style(COSMIC, 9, FontWeight.Black, 1.2f), modifier = Modifier.fillMaxWidth())
+        if (!live && !done) BasicText("UNLOCKS AFTER ${Missions.all.size - 1} MISSIONS", style = style(DIM, 7, spacing = 1f),
+            modifier = Modifier.fillMaxWidth().padding(top = 3.dp))
+    }
+}
+
 /** "MISSION COMPLETE": shown once per unlock, with the XP earned and your rank. */
 @Composable
 fun NewDnaSplash(indices: List<Int>, energy: Energy, art: AlienArt, onDone: () -> Unit) {
@@ -268,7 +328,7 @@ fun NewDnaSplash(indices: List<Int>, energy: Energy, art: AlienArt, onDone: () -
         Column(Modifier.fillMaxSize().padding(top = 24.dp, bottom = 26.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column(Modifier.fillMaxWidth()) {
                 BasicText(if (final) "FINAL MISSION COMPLETE" else "MISSION COMPLETE", style = style(accent, 11, FontWeight.Black, 2f), modifier = Modifier.fillMaxWidth())
-                BasicText("+$earned XP  ·  ${codex.rank.title}", style = style(DIM, 9), modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
+                BasicText("+%,d XP  ·  ".format(earned) + codex.rank.title, style = style(DIM, 9), modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
             }
             Column(Modifier.fillMaxWidth()) {
                 BasicText("NEW DNA", style = style(DIM, 9, spacing = 3f), modifier = Modifier.fillMaxWidth())

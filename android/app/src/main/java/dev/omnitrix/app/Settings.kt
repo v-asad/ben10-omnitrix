@@ -15,10 +15,10 @@ class Settings(context: Context) {
         get() = prefs.getInt("alien_minutes", 10)
         set(v) = prefs.edit { putInt("alien_minutes", v) }
 
-    /** Recharge after a timeout (0 = none). Reverting early never triggers it. */
-    var cooldownMinutes: Int
-        get() = prefs.getInt("cooldown_minutes", 2)
-        set(v) = prefs.edit { putInt("cooldown_minutes", v) }
+    /** Red timeout face after switching back from an alien (timeout or revert); 0 = off. */
+    var timeoutSeconds: Int
+        get() = prefs.getInt("timeout_seconds", 10)
+        set(v) = prefs.edit { putInt("timeout_seconds", v) }
 
     var animations: Animations
         get() = Animations.entries[prefs.getInt("animations", 0).coerceIn(0, 2)]
@@ -56,7 +56,13 @@ class Settings(context: Context) {
 
     companion object {
         val ALIEN_MINUTES = listOf(1, 3, 5, 10, 15)
-        val COOLDOWN_MINUTES = listOf(0, 1, 2, 5)
+        val TIMEOUT_SECONDS = listOf(0, 10, 30, 60, 120, 300)
+
+        fun timeoutLabel(seconds: Int) = when {
+            seconds == 0 -> "OFF"
+            seconds < 60 -> "$seconds S"
+            else -> "${seconds / 60} MIN"
+        }
         val AGES = (15..75 step 5).toList()
     }
 }

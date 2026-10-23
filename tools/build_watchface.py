@@ -232,7 +232,7 @@ def alien_slot(boxes):
     recharge = "\n".join([
         image("base_red", boxes),
         time_text(r["ink"]),
-        text(150, 157, 180, 16, "RECHARGING", 10, r["ink"], family="orbitron_bold", spacing=0.2),
+        text(150, 157, 180, 16, "TIMEOUT", 11, r["ink"], family="orbitron_bold", spacing=0.3),
         text(170, 318, 140, 32, '%s<Parameter expression="[COMPLICATION.TEXT]"/>', 22, r["ink"]),
     ])
     ambient = "\n".join([

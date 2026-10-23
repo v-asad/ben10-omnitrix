@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.0 (2026-10-23)
+
+### Added
+- **Tiles** (swipe left from the watch face, then add them from the tile list):
+  - **Bio-scan:** live heart rate, streamed into the tile by the system, so the app never wakes up. Tap for the full Bio-scan.
+  - **DNA Codex:** aliens unlocked, a progress ring to the next one, its name and the steps to go. Tap for the codex.
+  - **Omnitrix settings:** toggle sound, haptics, DNA locks and alien time right in the tile. "All settings" opens the full screen.
+- **Red timeout after switching back:** both timing out and holding to revert now show the red **TIMEOUT** face, 10 seconds by default. Set it under Settings → Timeout (off, 10 s, 30 s, 1 / 2 / 5 min). This replaces the old minutes-only recharge setting.
+
+
 ## v0.3.3 (2026-10-23)
 
 ### Changed

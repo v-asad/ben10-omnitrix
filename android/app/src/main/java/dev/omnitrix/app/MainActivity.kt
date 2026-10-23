@@ -47,11 +47,18 @@ class MainActivity : ComponentActivity() {
         }
         // Debug hook: --es preview <slug> plays that alien's transformation without transforming.
         val preview = intent.getStringExtra(EXTRA_PREVIEW)?.let { slug -> Aliens.all.indexOfFirst { it.slug == slug } }?.takeIf { it >= 0 }
+        // Tiles open straight onto a screen.
+        val start = when (intent.getStringExtra(EXTRA_SCREEN)) {
+            "bioscan" -> Screen.BIOSCAN
+            "codex" -> Screen.CODEX
+            "settings" -> Screen.SETTINGS
+            else -> null
+        }
         // Cheap insurance: make sure the face holds a live tap target for next time.
         Transformer.refreshFace(this)
         Sounds.preload(this)
         Diagnostics.schedule(this)
-        setContent { OmnitrixApp(preview = preview, onDone = ::finish) }
+        setContent { OmnitrixApp(preview = preview, start = start, onDone = ::finish) }
     }
 
     override fun onStart() {
@@ -68,17 +75,18 @@ class MainActivity : ComponentActivity() {
         if (!isChangingConfigurations) finish()
     }
 
-    private companion object {
-        const val EXTRA_TRANSFORM = "transform"
-        const val EXTRA_SECONDS = "seconds"
-        const val EXTRA_PREVIEW = "preview"
+    companion object {
+        const val EXTRA_SCREEN = "screen"
+        private const val EXTRA_TRANSFORM = "transform"
+        private const val EXTRA_SECONDS = "seconds"
+        private const val EXTRA_PREVIEW = "preview"
     }
 }
 
-private enum class Screen { SELECTOR, DOSSIER, MENU, SETTINGS, BATTERY, BIOSCAN, CODEX }
+internal enum class Screen { SELECTOR, DOSSIER, MENU, SETTINGS, BATTERY, BIOSCAN, CODEX }
 
 @Composable
-private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
+private fun OmnitrixApp(preview: Int?, start: Screen?, onDone: () -> Unit) {
     val context = LocalContext.current
     val state = remember { OmnitrixState(context) }
     val settings = remember { Settings(context) }
@@ -86,7 +94,9 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
     var transformation by remember { mutableStateOf(state.current()) }
     var cooldownUntil by remember { mutableLongStateOf(state.cooldownUntil) }
     var cursor by remember { mutableIntStateOf(state.lastAlien) }
-    var screen by remember { mutableStateOf(Screen.SELECTOR) }
+    var screen by remember { mutableStateOf(start ?: Screen.SELECTOR) }
+    // Opened from a tile: Back returns to wherever you came from, not the menu.
+    val backToMenu: () -> Unit = { if (start != null) onDone() else screen = Screen.MENU }
     var transformingInto by remember { mutableStateOf(preview) }
     val art = rememberAlienArt()
     val fx = remember { FxCache() }
@@ -101,7 +111,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
         if (wait > 0) { delay(wait); cooldownUntil = 0 }
     }
     LaunchedEffect(Unit) {
-        if (transformation == null && preview == null) {
+        if (transformation == null && preview == null && start == null) {
             Haptics.dialUp(context)
             Sounds.play(context, Sounds.Cue.DIAL_UP)
         }
@@ -113,7 +123,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
         when {
             into != null -> TransformationScreen(into, energy, art, fx,
                 if (settings.animations == Settings.Animations.QUICK) TRANSFORM_QUICK_MS else TRANSFORM_MS, onDone = onDone)
-            current != null -> AlienFormScreen(
+            current != null && start == null -> AlienFormScreen(
                 transformation = current,
                 art = art,
                 onRevert = {
@@ -130,16 +140,16 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
             }
             screen == Screen.MENU -> MenuScreen(energy, onBioScan = { screen = Screen.BIOSCAN }, onCodex = { screen = Screen.CODEX },
                 onSettings = { screen = Screen.SETTINGS }, onBattery = { screen = Screen.BATTERY }, onBack = { screen = Screen.SELECTOR })
-            screen == Screen.BIOSCAN -> BioScanScreen(energy, onBack = { screen = Screen.MENU })
-            screen == Screen.CODEX -> CodexScreen(energy, art, onBack = { newDna = emptyList(); screen = Screen.MENU })
-            screen == Screen.SETTINGS -> SettingsScreen(energy, onBack = { screen = Screen.MENU })
+            screen == Screen.BIOSCAN -> BioScanScreen(energy, onBack = backToMenu)
+            screen == Screen.CODEX -> CodexScreen(energy, art, onBack = { newDna = emptyList(); backToMenu() })
+            screen == Screen.SETTINGS -> SettingsScreen(energy, onBack = backToMenu)
             screen == Screen.BATTERY -> BatteryScreen(energy, onBack = { screen = Screen.MENU })
             else -> SelectorScreen(
                 energy = energy,
                 art = art,
                 fx = fx,
                 initialAlien = cursor,
-                rechargeText = if (recharging) "RECHARGING" else null,
+                rechargeText = if (recharging) "TIMEOUT" else null,
                 isUnlocked = { codex.isUnlocked(it, batteryEnergy) },
                 onSelectedChange = { cursor = it },
                 onTransform = { alien ->

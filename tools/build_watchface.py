@@ -100,8 +100,6 @@ def export_layers():
     jobs = {}
     for th in THEMES + ["alien"]:
         jobs[f"base_{th}"] = (f"layer=base&theme={th}", False)
-    for k in range(4):
-        jobs[f"slit_{k}"] = (f"layer=slit&k={k}", True)
     jobs["orbit"] = ("layer=orbit", True)
     jobs["warn_red"] = ("layer=warn&theme=red", True)
     jobs["ambient"] = ("layer=ambient", False)
@@ -177,16 +175,12 @@ def theme_layer(th, boxes):
     c = COLORS[th]
     parts = [image(f"base_{th}", boxes)]
 
-    # Four energy slits: signature Omnitrix lights (decorative, not a battery gauge).
-    for k in range(4):
-        slit = image(f"slit_{k}", boxes, f'tintColor="{c["slit"]}"')
-        parts.append(blink(slit) if th == "red" else slit)
 
     # Seconds track: a dashed arc whose dashes land exactly on the 60 ticks.
-    circumference = 2 * 3.14159265 * 207
+    circumference = 2 * 3.14159265 * 228.5
     parts.append(
         f'<PartDraw x="0" y="0" width="480" height="480">'
-        f'<Arc centerX="240" centerY="240" width="414" height="414" startAngle="-0.3" endAngle="360">'
+        f'<Arc centerX="240" centerY="240" width="457" height="457" startAngle="-0.3" endAngle="360">'
         f'<Transform target="endAngle" value="[SECOND] * 6 + 0.9"/>'
         f'<Stroke color="{c["text"]}" thickness="6" dashIntervals="2 {circumference / 60 - 2:.3f}"/></Arc></PartDraw>')
 
@@ -237,11 +231,9 @@ def alien_slot(boxes):
     r = COLORS["red"]
     recharge = "\n".join([
         image("base_red", boxes),
-        *[blink(image(f"slit_{k}", boxes, f'tintColor="{r["slit"]}"')) for k in range(4)],
         time_text(r["ink"]),
         text(150, 157, 180, 16, "RECHARGING", 10, r["ink"], family="orbitron_bold", spacing=0.2),
-        # sits above the activation button printed in the bottom bulb
-        text(180, 282, 120, 26, '%s<Parameter expression="[COMPLICATION.TEXT]"/>', 19, r["ink"]),
+        text(170, 318, 140, 32, '%s<Parameter expression="[COMPLICATION.TEXT]"/>', 22, r["ink"]),
     ])
     ambient = "\n".join([
         '<PartDraw x="0" y="0" width="480" height="480"><Ellipse x="0" y="0" width="480" height="480"><Fill color="#FF000000"/></Ellipse></PartDraw>',
@@ -335,11 +327,28 @@ def watchface_xml(boxes):
 '''
 
 
+AOD_LIT_BUDGET = 0.15   # Wear OS guidance: keep the always-on screen under ~15% lit pixels
+
+
+def check_aod_budget():
+    """Fails the build if an always-on layer lights too much of the OLED (power + burn-in)."""
+    for name in ("ambient", "ambient_alien"):
+        img = Image.open(RES / "drawable-nodpi" / f"{name}.png").convert("RGBA")
+        black = Image.new("RGBA", img.size, (0, 0, 0, 255))
+        black.alpha_composite(img)
+        px = list(black.convert("L").getdata())
+        lit = sum(v > 8 for v in px) / len(px)
+        print(f"  AOD {name:14s} {lit:5.1%} lit pixels (budget {AOD_LIT_BUDGET:.0%})")
+        if lit > AOD_LIT_BUDGET:
+            sys.exit(f"{name} lights {lit:.1%} of the screen; the always-on budget is {AOD_LIT_BUDGET:.0%}")
+
+
 def main():
     print("fonts…")
     build_fonts()
     print("layers…")
     boxes = export_layers()
+    check_aod_budget()
     (RES / "raw").mkdir(parents=True, exist_ok=True)
     (RES / "raw/watchface.xml").write_text(watchface_xml(boxes))
     print("app assets…")

@@ -65,9 +65,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 private const val ROTARY_STEP_PX = 48f
-private val HOLO_CENTER = Offset(240f, 196f)
-private const val HOLO_RADIUS = 96f
-private const val HOLO_SIZE = 196f
+private val HOLO_CENTER = Offset(240f, 218f)
+private const val HOLO_RADIUS = 132f
+private const val HOLO_SIZE = 276f
+private const val PAD_Y = 366f   // projector pad
 
 /**
  * The dial is up: a DNA carousel around the bezel, the selected alien projected as a hologram.
@@ -212,36 +213,8 @@ fun SelectorScreen(
                 }
             },
     ) {
-        val density = LocalDensity.current
+        // Just the hologram: no text on this screen (details live in the dossier, swipe up).
         val scale = min(constraints.maxWidth, constraints.maxHeight) / VIRTUAL
-        val alien = Aliens.all[selected]
-        val main = energy.main
-        val measurer = rememberTextMeasurer(cacheSize = 16)
-
-        // Text: measured when the selection changes, never per frame.
-        val name = remember(selected, scale, energy) {
-            measurer.fitted(alien.name, { orbitron(density, scale, it, FontWeight.Black, main, 2.5f) }, 25f, 300f, scale)
-        }
-        val origin = remember(selected, scale, energy) {
-            measurer.fitted("${alien.species} · ${alien.planet}".uppercase(),
-                { orbitron(density, scale, it, FontWeight.Bold, energy.bright.copy(alpha = 0.75f), 1f) }, 11f, 300f, scale)
-        }
-        val index = remember(selected, scale) {
-            measurer.measure("DNA %02d / %02d · %s".format(selected + 1, count, alien.era),
-                orbitron(density, scale, 10f, FontWeight.Bold, Color(0xFF6F9A66), 1.5f))
-        }
-        val dnaLocked = !isUnlocked(selected)
-        val cta = remember(scale, energy, rechargeText, dnaLocked) {
-            measurer.measure(rechargeText ?: when {
-                energy.locked -> "NO ENERGY · CHARGE"
-                dnaLocked -> "DNA REQUIRED"
-                else -> "TAP TO TRANSFORM"
-            },
-                orbitron(density, scale, 10f, FontWeight.Bold, main, 3f))
-        }
-        val statLabels = remember(scale) {
-            Aliens.STAT_LABELS.map { measurer.measure(it, orbitron(density, scale, 8f, FontWeight.Bold, Color(0xFF6F9A66), 1f)) }
-        }
         val kit = remember(energy) { SelectorKit(energy) }
 
         Canvas(
@@ -257,17 +230,7 @@ fun SelectorScreen(
                 drawBezel(kit, art, pos, count, isUnlocked)
                 drawCore(kit, spin.value)
                 drawHologram(kit, art, selected, materialize.value, t, lockedFor(selected))
-                drawStats(kit, alien.stats)
             }
-            drawCentered(index, 72f, scale)
-            drawCentered(name, 300f, scale)
-            drawCentered(origin, 331f, scale)
-            Aliens.STAT_LABELS.indices.forEach { k ->
-                val layout = statLabels[k]
-                drawText(layout, topLeft = Offset((169f + k * 47f) * scale - layout.size.width / 2f, 349f * scale))
-            }
-            drawCentered(cta, 382f, scale, alpha = 0.55f + 0.45f * abs(sin(t * PI.toFloat())))
-
         }
     }
 }
@@ -281,14 +244,14 @@ private class SelectorKit(val energy: Energy) {
     val ringBrush = Brush.sweepGradient(listOf(energy.ring, Color(0xFF15181A), energy.ring, Color(0xFF15181A), energy.ring), CENTER)
     val dash = PathEffect.dashPathEffect(floatArrayOf(2f, 6f))
     val notch = Path().apply { moveTo(231f, 0f); lineTo(249f, 0f); lineTo(240f, 8f); close() }
-    val cone = Path().apply { moveTo(198f, 292f); lineTo(282f, 292f); lineTo(334f, 104f); lineTo(146f, 104f); close() }
-    val coneBrush = Brush.verticalGradient(listOf(energy.main.copy(alpha = 0f), energy.main.copy(alpha = 0.32f)), startY = 104f, endY = 292f)
-    val padBrush = Brush.radialGradient(listOf(energy.main.copy(alpha = 0.55f), Color.Transparent), center = Offset(240f, 292f), radius = 56f)
+    val cone = Path().apply { moveTo(186f, PAD_Y); lineTo(294f, PAD_Y); lineTo(372f, 76f); lineTo(108f, 76f); close() }
+    val coneBrush = Brush.verticalGradient(listOf(energy.main.copy(alpha = 0f), energy.main.copy(alpha = 0.26f)), startY = 76f, endY = PAD_Y)
+    val padBrush = Brush.radialGradient(listOf(energy.main.copy(alpha = 0.55f), Color.Transparent), center = Offset(240f, PAD_Y), radius = 66f)
     val scanlines = Brush.verticalGradient(
-        0f to Color(0x73000000), 0.5f to Color(0x73000000), 0.5f to Color.Transparent, 1f to Color.Transparent,
+        0f to Color(0x38000000), 0.5f to Color(0x38000000), 0.5f to Color.Transparent, 1f to Color.Transparent,
         startY = 0f, endY = 4f, tileMode = TileMode.Repeated,
     )
-    val edgeFade = Brush.radialGradient(0.62f to Color.Transparent, 1f to Color.Black, center = HOLO_CENTER, radius = HOLO_RADIUS)
+    val edgeFade = Brush.radialGradient(0.78f to Color.Transparent, 1f to Color.Black, center = HOLO_CENTER, radius = HOLO_RADIUS)
     val ticks = Path().apply {
         for (i in 0 until 60) {
             val a = polar(if (i % 5 == 0) 186f else 189f, i * 6f)
@@ -339,24 +302,24 @@ private fun DrawScope.drawCore(kit: SelectorKit, spinDeg: Float) {
 private fun DrawScope.drawHologram(kit: SelectorKit, art: AlienArt, selected: Int, materialize: Float, t: Float, locked: Boolean) {
     val tau = 2f * PI.toFloat()
     val pulse = 0.5f + 0.5f * sin(t * tau * 2f)
-    drawCircle(kit.padBrush, radius = 50f + 8f * pulse, center = Offset(240f, 292f))
-    drawOval(kit.main, topLeft = Offset(196f, 285f), size = Size(88f, 14f), alpha = 0.6f + 0.25f * pulse)
+    drawCircle(kit.padBrush, radius = 58f + 8f * pulse, center = Offset(240f, PAD_Y))
+    drawOval(kit.main, topLeft = Offset(184f, PAD_Y - 8f), size = Size(112f, 16f), alpha = 0.6f + 0.25f * pulse)
 
     if (materialize > 0.01f) {
         val m = materialize
         val glitch = if (t in 0.61f..0.625f || t in 0.87f..0.88f) 5f else 0f
-        val flicker = (0.86f + 0.14f * sin(t * tau * 3f)) * (if (locked) 0.45f else 1f)
+        val flicker = (0.93f + 0.07f * sin(t * tau * 3f)) * (if (locked) 0.45f else 1f)
         withTransform({
             translate(glitch, 0f)
-            scale(scaleX = 0.6f + 0.4f * m.coerceAtMost(1f), scaleY = m, pivot = Offset(240f, 292f))
+            scale(scaleX = 0.6f + 0.4f * m.coerceAtMost(1f), scaleY = m, pivot = Offset(240f, PAD_Y))
         }) {
             art.glow(selected)?.let { glow ->
                 val (o, s) = squareDst(HOLO_CENTER, HOLO_SIZE * 1.04f)
-                drawImage(glow, srcSize = glow.srcSize(), dstOffset = o, dstSize = s, alpha = 0.4f * flicker, colorFilter = kit.mainFilter)
+                drawImage(glow, srcSize = glow.srcSize(), dstOffset = o, dstSize = s, alpha = 0.3f * flicker, colorFilter = kit.mainFilter)
             }
             art.holo(selected)?.let { holo ->
                 val (o, s) = squareDst(HOLO_CENTER, HOLO_SIZE)
-                drawImage(holo, srcSize = holo.srcSize(), dstOffset = o, dstSize = s, alpha = 0.95f * flicker, colorFilter = kit.holoFilter)
+                drawImage(holo, srcSize = holo.srcSize(), dstOffset = o, dstSize = s, alpha = flicker, colorFilter = kit.holoFilter)
             }
             drawCircle(kit.scanlines, radius = HOLO_RADIUS, center = HOLO_CENTER)
             val dy = (t * 2f - 1f) * HOLO_RADIUS
@@ -364,7 +327,7 @@ private fun DrawScope.drawHologram(kit: SelectorKit, art: AlienArt, selected: In
             drawRect(kit.main, topLeft = Offset(HOLO_CENTER.x - half, HOLO_CENTER.y + dy), size = Size(half * 2f, 2.5f), alpha = 0.6f * flicker)
             drawCircle(kit.edgeFade, radius = HOLO_RADIUS + 1f, center = HOLO_CENTER)
             withTransform({ rotate(-12f, pivot = HOLO_CENTER) }) {
-                drawOval(kit.main, topLeft = Offset(HOLO_CENTER.x - 104f, HOLO_CENTER.y + 18f), size = Size(208f, 34f),
+                drawOval(kit.main, topLeft = Offset(HOLO_CENTER.x - 140f, HOLO_CENTER.y + 34f), size = Size(280f, 44f),
                     style = Stroke(1.5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 7f), phase = -t * 170f)),
                     alpha = 0.55f * flicker)
             }
@@ -375,22 +338,11 @@ private fun DrawScope.drawHologram(kit: SelectorKit, art: AlienArt, selected: In
     // DNA sparks rising through the beam
     for (n in 0 until 7) {
         val phase = (t * 1.6f + n / 7f) % 1f
-        val y = 290f - phase * 180f
-        val spread = 22f + (290f - y) * 0.26f
+        val y = PAD_Y - 4f - phase * 250f
+        val spread = 26f + (PAD_Y - y) * 0.24f
         val x = 240f + spread * sin(n * 2.4f + phase * 5f)
         drawCircle(kit.main, radius = 1.8f, center = Offset(x, y), alpha = (1f - phase) * 0.9f)
     }
 }
 
-private fun DrawScope.drawStats(kit: SelectorKit, stats: IntArray) {
-    for (k in 0 until 4) {
-        val x0 = 150f + k * 47f
-        for (n in 0 until 10) {
-            drawRect(if (n < stats[k]) kit.main else Color(0xFF1C2A1A), topLeft = Offset(x0 + n * 4f, 362f), size = Size(3f, 6f))
-        }
-    }
-}
 
-private fun DrawScope.drawCentered(layout: TextLayoutResult, y: Float, scale: Float, alpha: Float = 1f) {
-    drawText(layout, topLeft = Offset(240f * scale - layout.size.width / 2f, y * scale), alpha = alpha)
-}

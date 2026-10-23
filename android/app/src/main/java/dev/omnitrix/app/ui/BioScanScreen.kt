@@ -27,39 +27,36 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import dev.omnitrix.app.Aliens
 import dev.omnitrix.app.Energy
 import dev.omnitrix.app.Haptics
 import dev.omnitrix.app.Settings
 import kotlin.math.exp
-import kotlin.math.max
+import kotlin.math.floor
 import kotlin.math.min
 
-/** Heart-rate zones by % of max heart rate, each named after an alien. */
-private class Zone(val upTo: Float, val alien: String, val tag: String, val color: Color)
+/** Heart-rate zones by % of max heart rate. */
+private class Zone(val upTo: Float, val word: String, val color: Color)
 
 private val ZONES = listOf(
-    Zone(0.60f, "grey-matter", "CALM", Color(0xFF2F8F2A)),
-    Zone(0.70f, "diamondhead", "STEADY", Color(0xFF4FCF2A)),
-    Zone(0.80f, "four-arms", "STRENGTH", Color(0xFF9DFF2E)),
-    Zone(0.90f, "heatblast", "BURN", Color(0xFFFFB02E)),
-    Zone(9.99f, "xlr8", "MAX SPEED", Color(0xFFFF4A2E)),
+    Zone(0.60f, "CALM", Color(0xFF2F8F2A)),
+    Zone(0.70f, "STEADY", Color(0xFF4FCF2A)),
+    Zone(0.80f, "STRONG", Color(0xFF9DFF2E)),
+    Zone(0.90f, "BURN", Color(0xFFFFB02E)),
+    Zone(9.99f, "MAX", Color(0xFFFF4A2E)),
 )
 
 /** Heart-rate permission: Android 16 (Wear OS 6) split BODY_SENSORS into granular health permissions. */
@@ -68,17 +65,16 @@ private val HEART_PERMISSIONS = if (Build.VERSION.SDK_INT >= 36)
 else arrayOf(Manifest.permission.BODY_SENSORS)
 
 /**
- * Bio-scan: live heart rate from the watch's sensor (registered only while this screen is open),
- * a mini Omnitrix core beating at your BPM, a pulse trace paced by it, and alien-named zones.
- * The trace is drawn from your measured rate; watches don't expose a raw ECG to apps.
+ * Bio-scan, minimal: the zone gauge around the edge (its needle pulses with each beat), your BPM,
+ * a pulse trace paced by it and one zone word. The sensor is registered only while this screen is
+ * open. The trace follows your measured rate; watches don't expose a raw ECG to apps.
  */
 @Composable
-fun BioScanScreen(energy: Energy, art: AlienArt, onBack: () -> Unit) {
+fun BioScanScreen(energy: Energy, onBack: () -> Unit) {
     BackHandler(onBack = onBack)
     val context = LocalContext.current
     val view = LocalView.current
-    val settings = remember { Settings(context) }
-    val maxHr = 220f - settings.age
+    val maxHr = remember { 220f - Settings(context).age }
 
     fun granted() = HEART_PERMISSIONS.any { context.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
     var permitted by remember { mutableStateOf(granted()) }
@@ -86,8 +82,6 @@ fun BioScanScreen(energy: Energy, art: AlienArt, onBack: () -> Unit) {
     LaunchedEffect(Unit) { if (!permitted) request.launch(HEART_PERMISSIONS) }
 
     var bpm by remember { mutableIntStateOf(0) }
-    val session = remember { IntArray(3) }                     // min, max, sum
-    var count by remember { mutableIntStateOf(0) }
     var zone by remember { mutableIntStateOf(-1) }
 
     if (permitted) DisposableEffect(Unit) {
@@ -98,10 +92,6 @@ fun BioScanScreen(energy: Energy, art: AlienArt, onBack: () -> Unit) {
                 val v = event.values[0].toInt()
                 if (v <= 0 || event.accuracy == SensorManager.SENSOR_STATUS_NO_CONTACT) return
                 bpm = v
-                session[0] = if (count == 0) v else min(session[0], v)
-                session[1] = max(session[1], v)
-                session[2] += v
-                count++
                 val z = ZONES.indexOfFirst { v / maxHr <= it.upTo }
                 if (z != zone) { if (zone >= 0) Haptics.tick(view); zone = z }
             }
@@ -120,91 +110,55 @@ fun BioScanScreen(energy: Energy, art: AlienArt, onBack: () -> Unit) {
     }) {
         val density = LocalDensity.current
         val scale = min(constraints.maxWidth, constraints.maxHeight) / VIRTUAL
-        val measurer = rememberTextMeasurer(cacheSize = 24)
-        val digits = remember(scale) { DigitAtlas(measurer, orbitron(density, scale, 70f, FontWeight.Black, Color(0xFFEAFFE0)), "0123456789-") }
-        val dim = Color(0xFF6F9A66)
-        val title = remember(scale) { measurer.measure("BIO-SCAN", orbitron(density, scale, 12f, FontWeight.Bold, dim, 5f)) }
-        val small = { text: String, color: Color, size: Float -> measurer.measure(text, orbitron(density, scale, size, FontWeight.Bold, color, 2f)) }
-        val z = zone.coerceAtLeast(0)
-        val zoneLabel = remember(zone, scale) { small(if (zone < 0) "SCANNING…" else "ZONE ${z + 1} · ${ZONES[z].tag}", dim, 11f) }
-        val zoneName = remember(zone, scale) { if (zone < 0) null else measurer.measure(Aliens.all.first { it.slug == ZONES[z].alien }.name,
-            orbitron(density, scale, 15f, FontWeight.Black, ZONES[z].color, 2f)) }
-        val footer = remember(count / 5, scale) {
-            val avg = if (count > 0) session[2] / count else 0
-            listOf("MIN" to session[0], "AVG" to avg, "MAX" to session[1]).map { (k, v) ->
-                small(k, Color(0xFF4F7A45), 9f) to small(if (count > 0) "$v" else "--", Color(0xFF9DFF7A), 14f)
-            }
+        val measurer = rememberTextMeasurer(cacheSize = 12)
+        val digits = remember(scale) { DigitAtlas(measurer, orbitron(density, scale, 96f, FontWeight.Black, Color(0xFFEAFFE0)), "0123456789-") }
+        val unit = remember(scale) { measurer.measure("BPM", orbitron(density, scale, 12f, FontWeight.Bold, Color(0xFF6F9A66), 5f)) }
+        val zoneColor = if (zone >= 0) ZONES[zone].color else Color(0xFF4F7A45)
+        val word = remember(zone, permitted, scale) {
+            measurer.measure(when { !permitted -> "TAP TO ALLOW"; zone < 0 -> "SCANNING"; else -> ZONES[zone].word },
+                orbitron(density, scale, 12f, FontWeight.Black, if (permitted) zoneColor else energy.main, 4f))
         }
-        val prompt = remember(scale) { small("TAP TO ALLOW HEART RATE", energy.main, 10f) }
-        val zoneIcon = remember(zone) { if (zone < 0) -1 else Aliens.all.indexOfFirst { it.slug == ZONES[z].alien } }
-        val kit = remember(energy) { BioKit(energy) }
+        val trace = remember { Path() }
 
         Canvas(Modifier.fillMaxSize()) {
             val now = clock.longValue
-            val rate = if (bpm > 0) bpm else 60
-            val period = 60_000f / rate
+            val period = 60_000f / (if (bpm > 0) bpm else 60)
             val phase = (now % period.toLong()) / period                    // 0..1 within a beat
-            art.version.intValue
 
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
                 // zone gauge: 40 bpm … max HR + 10, over -130°…130°
                 val lo = 40f; val hi = maxHr + 10f
                 fun ang(v: Float) = -130f + ((v.coerceIn(lo, hi) - lo) / (hi - lo)) * 260f
                 var from = lo
-                ZONES.forEachIndexed { i, zz ->
-                    val to = min(hi, zz.upTo * maxHr)
+                ZONES.forEachIndexed { i, z ->
+                    val to = min(hi, z.upTo * maxHr)
                     val active = i == zone
-                    drawArc(zz.color, ang(from) - 90f + 1f, ang(to) - ang(from) - 2f, false, Offset(28f, 28f), Size(424f, 424f),
-                        style = Stroke(if (active) 16f else 9f, cap = StrokeCap.Butt), alpha = if (active) 1f else 0.4f)
+                    drawArc(z.color, ang(from) - 90f + 1f, ang(to) - ang(from) - 2f, false, Offset(24f, 24f), Size(432f, 432f),
+                        style = Stroke(if (active) 14f else 7f, cap = StrokeCap.Butt), alpha = if (active) 1f else 0.3f)
                     from = to
                 }
-                if (bpm > 0) {
-                    val needle = polar(212f, ang(bpm.toFloat()))
-                    drawCircle(Color.White, radius = 11f, center = needle)
-                    drawCircle(Color.Black, radius = 11f, center = needle, style = Stroke(3f))
+                if (bpm > 0) {                                                // needle pulses with each beat
+                    val needle = polar(216f, ang(bpm.toFloat()))
+                    drawCircle(zoneColor, radius = 10f + 7f * exp(-phase * 8f), center = needle, alpha = 0.35f)
+                    drawCircle(Color.White, radius = 8f, center = needle)
                 }
-                // DNA helix backdrop
-                for (i in 0 until 22) {
-                    val y = 40f + i * 19f
-                    val w = kotlin.math.sin(i * 0.6f + now / 900f) * 90f
-                    drawLine(energy.main, Offset(240f - w, y), Offset(240f + w, y), strokeWidth = 2f, alpha = 0.12f)
-                }
-                // mini Omnitrix core, beating at your pulse
-                val beat = 1f + 0.14f * exp(-phase * 9f)
-                withTransform({ scale(beat, beat, pivot = Offset(240f, 118f)) }) {
-                    drawCircle(kit.coreGlow, radius = 36f, center = Offset(240f, 118f))
-                    drawCircle(energy.main, radius = 28f, center = Offset(240f, 118f))
-                    drawPath(kit.miniWedges, Color(0xFF050805))   // overhang lands on the black background: no clip needed
-                    drawCircle(Color.Black, radius = 28f, center = Offset(240f, 118f), style = Stroke(3f))
-                }
-                // pulse trace, scrolling, paced by the measured rate
-                kit.trace.reset()
-                var x = 72f                                                    // stays inside the circle: no clip needed
+                // pulse trace, scrolling, paced by the measured rate (stays inside the circle: no clip)
+                trace.reset()
+                var x = 96f
                 val speed = 0.12f                                              // px per ms
-                while (x <= 408f) {
-                    val t = ((now * speed - x) / (period * speed)).let { it - kotlin.math.floor(it) }
-                    val y = 262f - pqrst(t) * 46f
-                    if (x == 72f) kit.trace.moveTo(x, y) else kit.trace.lineTo(x, y)
+                while (x <= 384f) {
+                    val t = ((now * speed - x) / (period * speed)).let { it - floor(it) }
+                    val y = 330f - pqrst(t) * 38f
+                    if (x == 96f) trace.moveTo(x, y) else trace.lineTo(x, y)
                     x += 3f
                 }
-                drawPath(kit.trace, energy.main, style = Stroke(6f, join = StrokeJoin.Round), alpha = 0.25f)
-                drawPath(kit.trace, energy.main, style = Stroke(2.5f, join = StrokeJoin.Round))
-                if (zoneIcon >= 0) art.icon(zoneIcon)?.let { icon ->
-                    val (o, s) = squareDst(Offset(178f, 352f), 30f)
-                    drawImage(icon, srcSize = icon.srcSize(), dstOffset = o, dstSize = s, colorFilter = ColorFilter.tint(ZONES[z].color))
-                }
+                drawPath(trace, zoneColor, style = Stroke(2.5f, join = StrokeJoin.Round), alpha = if (bpm > 0) 1f else 0.35f)
             }
-            fun centered(layout: androidx.compose.ui.text.TextLayoutResult, cx: Float, y: Float) =
-                drawText(layout, topLeft = Offset(cx * scale - layout.size.width / 2f, y * scale))
-            centered(title, 240f, 162f)
-            if (!permitted) centered(prompt, 240f, 214f)
-            else digits.draw(this, if (bpm > 0) "$bpm" else "--", 240f * scale, 214f * scale)
-            centered(zoneLabel, 240f, 306f)
-            zoneName?.let { drawText(it, topLeft = Offset(198f * scale, 343f * scale)) }
-            footer.forEachIndexed { i, (k, v) ->
-                val cx = 150f + i * 90f
-                centered(k, cx, 388f); centered(v, cx, 402f)
-            }
+            fun centered(layout: TextLayoutResult, y: Float) =
+                drawText(layout, topLeft = Offset(size.width / 2f - layout.size.width / 2f, y * scale))
+            digits.draw(this, if (bpm > 0) "$bpm" else "--", size.width / 2f, 205f * scale)
+            centered(unit, 262f)
+            centered(word, 384f)
         }
     }
 }
@@ -220,13 +174,4 @@ private fun pqrst(t: Float): Float = when {
     t < 0.42f -> 0f
     t < 0.56f -> 0.22f * kotlin.math.sin((t - 0.42f) / 0.14f * Math.PI.toFloat())
     else -> 0f
-}
-
-private class BioKit(energy: Energy) {
-    val coreGlow = Brush.radialGradient(listOf(energy.main.copy(alpha = 0.45f), Color.Transparent), center = Offset(240f, 118f), radius = 40f)
-    val miniWedges = Path().apply {
-        moveTo(237f, 118f); lineTo(224f, 93f); lineTo(214f, 104f); lineTo(212f, 118f); lineTo(214f, 132f); lineTo(224f, 143f); close()
-        moveTo(243f, 118f); lineTo(256f, 93f); lineTo(266f, 104f); lineTo(268f, 118f); lineTo(266f, 132f); lineTo(256f, 143f); close()
-    }
-    val trace = Path()
 }

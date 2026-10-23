@@ -30,13 +30,11 @@ const whiteGlow = id => `<filter id="wg${id}" x="-50%" y="-50%" width="200%" hei
   <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
 
 const LAYERS = {
-  // Everything static on the face: bezel, unlit slits, unlit seconds track, plate, core, wedges.
+  // Everything static on the face: unlit seconds track, plate, core, wedges.
   base() {
     const id = ++UID;
     const o = { theme:'static', battery:0, countdown:0, time:new Date(2026,0,1,10,10,0) };
-    // Human faces carry the activation button in the bottom bulb; the alien badge shows its emblem there.
-    const button = themeName === 'alien' ? '' : dialButton(t.ink);
-    return `${defs(t,id)}${bezel(t,id,o)}${hourglass(t,id,o)}${button}`;
+    return `${defs(t,id)}${bezel(t,id,o)}${hourglass(t,id,o)}`;
   },
   // One lit energy slit (k = 0..3 in light order), white so the face can tint it.
   slit() {
@@ -47,7 +45,7 @@ const LAYERS = {
   },
   // Master Control roster ring, rotated slowly by the face.
   orbit() {
-    return ALIENS.map((a,i) => { const [x,y] = polar(CORE_R + 10, i*360/ALIENS.length); return emblem(a, x, y, 12, WHITE); }).join('');
+    return ALIENS.map((a,i) => { const [x,y] = polar(CORE_R + 8, i*360/ALIENS.length); return emblem(a, x, y, 10, WHITE); }).join('');
   },
   // Low-energy warning along the bottom of the plate (blinks on the face).
   warn() {

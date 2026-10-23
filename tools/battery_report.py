@@ -14,7 +14,7 @@ import io
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -88,6 +88,48 @@ def power_estimates():
     return result, capacity, total, screen.group(1).strip() if screen else None
 
 
+WAKE_GROUPS = [("wlan", "Wi-Fi"), ("hip4", "Wi-Fi"), ("contexthub", "sensor hub (steps, wrist gestures)"),
+               ("touchscreen", "touch"), ("alarmtimer", "alarms"), ("s2mpw", "power IC (buttons, charger)"),
+               ("ssp", "sensor hub (steps, wrist gestures)"), ("bt", "Bluetooth")]
+
+
+def watch_tz():
+    out = adb("shell", "date", "+%z", check=False).strip()           # e.g. +0500
+    sign = -1 if out.startswith("-") else 1
+    return timezone(sign * timedelta(hours=int(out[1:3]), minutes=int(out[3:5]))) if len(out) == 5 else timezone.utc
+
+
+def history_analysis(start_ms, end_ms):
+    """Screen time, doze and wake-ups for [start_ms, end_ms] from batterystats' history."""
+    text = adb("shell", "dumpsys", "batterystats", check=False)
+    tz, year = watch_tz(), datetime.now().year
+    stamp = re.compile(r"^\s+(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)\.(\d+) ")
+    screen_ms = doze = 0
+    on_at = None
+    wakes, omnitrix = {}, {}
+    uid = uid_of("dev.omnitrix.app")
+    for line in text.splitlines():
+        m = stamp.match(line)
+        if not m:
+            continue
+        mo, d, h, mi, sec, ms = map(int, m.groups())
+        t = datetime(year, mo, d, h, mi, sec, ms * 1000, tzinfo=tz).timestamp() * 1000
+        if not start_ms <= t <= end_ms:
+            continue
+        if "+screen" in line and "+screen_doze" not in line:
+            on_at = t
+        if "-screen" in line and "-screen_doze" not in line and on_at is not None:
+            screen_ms += t - on_at; on_at = None
+        doze += line.count("+screen_doze")
+        for w in re.findall(r'wake_reason=\S+:"([^"]+)"', line):
+            group = next((label for key, label in WAKE_GROUPS if key in w), "other")
+            wakes[group] = wakes.get(group, 0) + 1
+        if uid:
+            for kind, name in re.findall(rf'\+(w|wake_lock|job|alarm|wake_alarm)={re.escape(uid)}:"([^"]+)"', line):
+                omnitrix[f"{kind}:{name}"] = omnitrix.get(f"{kind}:{name}", 0) + 1
+    return screen_ms / 60000, doze, wakes, omnitrix
+
+
 def report():
     raw = adb("shell", "cat", CSV_PATH, check=False)
     rows = list(csv.DictReader(io.StringIO(raw))) if raw.startswith("epoch_ms") else []
@@ -106,11 +148,20 @@ def report():
         best = max(runs, key=len)
         hours = (int(best[-1]["epoch_ms"]) - int(best[0]["epoch_ms"])) / 3600_000
         drop = int(best[0]["battery_pct"]) - int(best[-1]["battery_pct"])
-        screen_on = sum(r["screen_on"] == "1" for r in best) / len(best)
         lines += ["## Day of wear (from the app's log)", "",
                   f"- Off the charger: **{hours:.1f} h**, battery {best[0]['battery_pct']}% → {best[-1]['battery_pct']}% (−{drop}%)",
                   f"- Average drain: **{drop / hours:.1f}%/h**" + (f" → full battery lasts ~{100 / (drop / hours):.0f} h" if drop > 0 else "") if hours > 0 else "- Not enough time yet",
-                  f"- Screen on in {screen_on:.0%} of samples", ""]
+                  ""]
+        screen_min, doze, wakes, omnitrix = history_analysis(int(best[0]["epoch_ms"]), int(best[-1]["epoch_ms"]))
+        total_wakes = sum(wakes.values())
+        lines += ["## What woke the watch (Android battery history)", "",
+                  f"- Screen on: **{screen_min:.0f} min** of {hours * 60:.0f} · always-on/doze sessions: {doze}",
+                  f"- Wake-ups: {total_wakes}" + (" · " + ", ".join(f"{k} {v}" for k, v in sorted(wakes.items(), key=lambda kv: -kv[1])) if wakes else ""),
+                  "- Omnitrix wake-locks / alarms: " + (", ".join(f"{k} ×{v}" for k, v in omnitrix.items()) if omnitrix else "**none**"),
+                  ""]
+        if adb("shell", "settings", "get", "global", "adb_wifi_enabled", check=False).strip() == "1" and wakes.get("Wi-Fi", 0) > total_wakes * 0.3:
+            lines += [f"> ⚠️ **Wireless debugging is on**: it keeps Wi-Fi awake, and Wi-Fi caused {wakes['Wi-Fi']} of {total_wakes} wake-ups.",
+                      "> Turn it off when you're not developing: `tools/wireless_debugging.sh off`.", ""]
     else:
         lines += ["## Day of wear", "", "- Not enough samples yet (they're logged every ~15 min).", ""]
 

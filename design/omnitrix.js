@@ -74,7 +74,7 @@ const anim = (cls, period) => `class="${cls}" style="animation-delay:-${((perfor
 // One-shot animation that started at t0 (ms); stays finished on later renders.
 const since = (cls, t0) => `class="${cls}" style="animation-delay:-${((performance.now() - t0)/1000).toFixed(3)}s"`;
 // Face core radius (the selector keeps its own 150 px geometry).
-const CORE_R = 218;   // no bezel, no seconds ring: the hourglass fills the screen
+const CORE_R = 200;   // no outer bezel: the hourglass fills the screen
 const themeFor = b => b > 90 ? 'master' : b < 20 ? 'red' : 'green';
 
 function defs(t, id) {
@@ -100,9 +100,18 @@ function defs(t, id) {
   </defs>`;
 }
 
-// Background disc. No bezel, lights or seconds ring: the hourglass is the whole face.
+// Outer track: just the seconds ticks on black (no bezel ring, no lights).
 function bezel(t, id, o) {
-  return `<circle cx="240" cy="240" r="240" fill="#000"/>`;
+  let s = `<circle cx="240" cy="240" r="240" fill="#000"/>`;
+  // seconds track
+  const sec = o.time.getSeconds();
+  for (let i = 0; i < 60; i++) {
+    const big = i % 5 === 0;
+    const [x0,y0] = polar(big ? 221 : 225, i*6), [x1,y1] = polar(232, i*6);
+    const on = o.countdown == null ? i <= sec : i < Math.round(o.countdown*60);
+    s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${on ? t.text : '#1f2620'}" stroke-width="${big?3:2}" stroke-linecap="round" opacity="${on?1:.9}"/>`;
+  }
+  return s;
 }
 
 function hourglass(t, id, o) {
@@ -345,14 +354,20 @@ const AOD = {
 };
 function ambientArt(id, mode='green') {
   const c = AOD[mode];
+  // hour ticks only: the always-on screen stays under its lit-pixel budget
+  const ticks = Array.from({length:60}, (_,i) => i % 5 ? '' : (() => {
+    const hour = true, [x0,y0] = polar(222, i*6), [x1,y1] = polar(232, i*6);
+    return `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${hour ? c.label : c.faint}" stroke-width="${hour?2.5:1.5}" stroke-linecap="round"/>`;
+  })()).join('');
   const bulb = (y0) => `<linearGradient id="bulb${id}${y0}" x1="0" y1="${y0 < 240 ? 0 : 1}" x2="0" y2="${y0 < 240 ? 1 : 0}">
-      <stop offset="0" stop-color="${c.dim}"/><stop offset=".2" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
+      <stop offset="0" stop-color="${c.dim}"/><stop offset=".3" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
   return `<defs>
       ${bulb(90)}${bulb(390)}
-      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <clipPath id="aclip${id}"><circle cx="240" cy="240" r="${CORE_R}"/></clipPath>
       <path id="aarc${id}" d="${arc(172, -62, 62)}"/>
     </defs>
+    ${ticks}
     <circle cx="240" cy="240" r="${CORE_R + 16}" fill="none" stroke="${c.faint}" stroke-width="1.5"/>
     <g clip-path="url(#aclip${id})">
       <polygon points="226,240 104,30 376,30 254,240" fill="url(#bulb${id}90)"/>

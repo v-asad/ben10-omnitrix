@@ -15,8 +15,7 @@
         <Compare expression="master">
           <Group name="master_control" x="0" y="0" width="480" height="480">
 <PartImage x="0" y="0" width="480" height="480" ><Image resource="base_master"/></PartImage>
-<PartDraw x="0" y="0" width="480" height="480"><Arc centerX="240" centerY="240" width="457" height="457" startAngle="-0.3" endAngle="360"><Transform target="endAngle" value="[SECOND] * 6 + 0.9"/><Stroke color="#D6FF6A" thickness="6" dashIntervals="2 21.928"/></Arc></PartDraw>
-<Group name="orbit" x="29" y="27" width="421" height="420" pivotX="0.5012" pivotY="0.5071"><Transform target="angle" value="[SECONDS_IN_DAY] % 360"/><PartImage x="0" y="0" width="421" height="420" tintColor="#F4FF9A"><Image resource="orbit"/></PartImage></Group>
+<Group name="orbit" x="11" y="9" width="457" height="456" pivotX="0.5011" pivotY="0.5066"><Transform target="angle" value="[SECONDS_IN_DAY] % 360"/><PartImage x="0" y="0" width="457" height="456" tintColor="#F4FF9A"><Image resource="orbit"/></PartImage></Group>
 <Condition><Expressions><Expression name="c">[IS_24_HOUR_MODE] == 1</Expression></Expressions><Compare expression="c"><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#0A2A02"><Template>%s:%s<Parameter expression="[HOUR_0_23_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Compare><Default><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#0A2A02"><Template>%s:%s<Parameter expression="[HOUR_1_12_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Default></Condition>
 <PartText x="160" y="157" width="160" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="11" color="#C00A2A02" letterSpacing="0.3"><Upper><Template>%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/></Template></Upper></Font></Text></PartText>
           </Group>
@@ -24,8 +23,7 @@
         <Compare expression="recharge">
           <Group name="recharge" x="0" y="0" width="480" height="480">
 <PartImage x="0" y="0" width="480" height="480" ><Image resource="base_red"/></PartImage>
-<PartDraw x="0" y="0" width="480" height="480"><Arc centerX="240" centerY="240" width="457" height="457" startAngle="-0.3" endAngle="360"><Transform target="endAngle" value="[SECOND] * 6 + 0.9"/><Stroke color="#FF5A46" thickness="6" dashIntervals="2 21.928"/></Arc></PartDraw>
-<Condition><Expressions><Expression name="c">[SECOND] % 2 == 0</Expression></Expressions><Compare expression="c"><PartImage x="178" y="432" width="120" height="18" ><Image resource="warn_red"/></PartImage></Compare></Condition>
+<Condition><Expressions><Expression name="c">[SECOND] % 2 == 0</Expression></Expressions><Compare expression="c"><PartImage x="178" y="451" width="120" height="16" ><Image resource="warn_red"/></PartImage></Compare></Condition>
 <Condition><Expressions><Expression name="c">[IS_24_HOUR_MODE] == 1</Expression></Expressions><Compare expression="c"><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#2A0202"><Template>%s:%s<Parameter expression="[HOUR_0_23_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Compare><Default><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#2A0202"><Template>%s:%s<Parameter expression="[HOUR_1_12_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Default></Condition>
 <PartText x="160" y="157" width="160" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="11" color="#C02A0202" letterSpacing="0.3"><Upper><Template>%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/></Template></Upper></Font></Text></PartText>
           </Group>
@@ -33,7 +31,6 @@
         <Default>
           <Group name="omnitrix" x="0" y="0" width="480" height="480">
 <PartImage x="0" y="0" width="480" height="480" ><Image resource="base_green"/></PartImage>
-<PartDraw x="0" y="0" width="480" height="480"><Arc centerX="240" centerY="240" width="457" height="457" startAngle="-0.3" endAngle="360"><Transform target="endAngle" value="[SECOND] * 6 + 0.9"/><Stroke color="#8AFF52" thickness="6" dashIntervals="2 21.928"/></Arc></PartDraw>
 <Condition><Expressions><Expression name="c">[IS_24_HOUR_MODE] == 1</Expression></Expressions><Compare expression="c"><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#062A02"><Template>%s:%s<Parameter expression="[HOUR_0_23_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Compare><Default><PartText x="140" y="116" width="200" height="34"><Text align="CENTER"><Font family="orbitron_black" size="26" color="#062A02"><Template>%s:%s<Parameter expression="[HOUR_1_12_Z]"/><Parameter expression="[MINUTE_Z]"/></Template></Font></Text></PartText></Default></Condition>
 <PartText x="160" y="157" width="160" height="16"><Text align="CENTER"><Font family="orbitron_bold" size="11" color="#C0062A02" letterSpacing="0.3"><Upper><Template>%s %s<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[DAY_Z]"/></Template></Upper></Font></Text></PartText>
           </Group>

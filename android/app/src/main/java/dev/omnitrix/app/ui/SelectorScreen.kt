@@ -66,6 +66,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 private const val ROTARY_STEP_PX = 48f
+/** Minimum gap between bezel steps, so one click never skips an alien. */
+private const val ROTARY_GAP_MS = 90L
 private val HOLO_CENTER = Offset(240f, 218f)
 private const val HOLO_RADIUS = 132f
 private const val HOLO_SIZE = 276f
@@ -168,15 +170,24 @@ fun SelectorScreen(
 
     val focus = remember { FocusRequester() }
     val rotary = remember { floatArrayOf(0f) }
+    val lastStep = remember { longArrayOf(0L) }
     LaunchedEffect(Unit) { focus.requestFocus() }
 
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
             .onRotaryScrollEvent { event ->
-                rotary[0] += event.verticalScrollPixels
-                while (rotary[0] >= ROTARY_STEP_PX) { step(1); rotary[0] -= ROTARY_STEP_PX }
-                while (rotary[0] <= -ROTARY_STEP_PX) { step(-1); rotary[0] += ROTARY_STEP_PX }
+                // One alien per bezel click: a click can carry more than a step's worth of pixels,
+                // so step at most once per event, drop the remainder, and ignore clicks that arrive
+                // too close together. Reversing direction starts fresh.
+                val px = event.verticalScrollPixels
+                if (px * rotary[0] < 0f) rotary[0] = 0f
+                rotary[0] += px
+                if (abs(rotary[0]) >= ROTARY_STEP_PX && event.uptimeMillis - lastStep[0] >= ROTARY_GAP_MS) {
+                    step(if (rotary[0] > 0f) 1 else -1)
+                    lastStep[0] = event.uptimeMillis
+                    rotary[0] = 0f
+                }
                 true
             }
             .focusRequester(focus)

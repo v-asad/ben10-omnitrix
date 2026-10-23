@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.2 (2026-10-23)
+
+### Fixed
+- **Bezel no longer skips aliens:** each bezel click moves the selector exactly one alien. Before, one click could jump two, and fast turns skipped some.
+
+
 ## v0.5.1 (2026-10-23)
 
 ### Changed

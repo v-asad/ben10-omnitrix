@@ -176,6 +176,13 @@ def theme_layer(th, boxes):
     parts = [image(f"base_{th}", boxes)]
 
 
+    # Seconds track: a dashed arc whose dashes land exactly on the 60 ticks.
+    circumference = 2 * 3.14159265 * 228.5
+    parts.append(
+        f'<PartDraw x="0" y="0" width="480" height="480">'
+        f'<Arc centerX="240" centerY="240" width="457" height="457" startAngle="-0.3" endAngle="360">'
+        f'<Transform target="endAngle" value="[SECOND] * 6 + 0.9"/>'
+        f'<Stroke color="{c["text"]}" thickness="6" dashIntervals="2 {circumference / 60 - 2:.3f}"/></Arc></PartDraw>')
 
     if th == "master":
         x, y, w, h = boxes["orbit"]

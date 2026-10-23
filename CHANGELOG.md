@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1 (2026-10-23)
+
+### Changed
+- **No more seconds ring:** the ticks and the live seconds arc around the edge are gone, and the hourglass grows to fill almost the whole screen. That applies to every face: green, Master Control, red timeout, the alien badge and the always-on face. The face also no longer redraws every second.
+
+
 ## v0.4.0 (2026-10-23)
 
 ### Added

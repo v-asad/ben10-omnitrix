@@ -127,7 +127,7 @@ private fun OmnitrixApp(preview: Int?, onDone: () -> Unit) {
             }
             screen == Screen.MENU -> MenuScreen(energy, onBioScan = { screen = Screen.BIOSCAN }, onCodex = { screen = Screen.CODEX },
                 onSettings = { screen = Screen.SETTINGS }, onBattery = { screen = Screen.BATTERY }, onBack = { screen = Screen.SELECTOR })
-            screen == Screen.BIOSCAN -> BioScanScreen(energy, art, onBack = { screen = Screen.MENU })
+            screen == Screen.BIOSCAN -> BioScanScreen(energy, onBack = { screen = Screen.MENU })
             screen == Screen.CODEX -> CodexScreen(energy, art, onBack = { newDna = emptyList(); screen = Screen.MENU })
             screen == Screen.SETTINGS -> SettingsScreen(energy, onBack = { screen = Screen.MENU })
             screen == Screen.BATTERY -> BatteryScreen(energy, onBack = { screen = Screen.MENU })

@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.5.0 (2026-10-23)
+
+### Added
+- **DNA Missions:** the DNA Codex is now a mission campaign.
+  - You start with the original ten aliens. The other 40 unlock one mission at a time across five chapters: Summer Vacation, Alien Force, Ultimate Alien, the Ultimates and the **Final Mission**, which unlocks Alien X last.
+  - Missions ask you to walk steps, transform, stay in alien form until it times out, try different aliens, finish Bio-scans or keep up days of 5,000+ steps. The last mission of each chapter has two objectives.
+  - Each mission rewards a new alien and XP. XP moves you up the ranks: Rookie → Hero → Plumber → Magister → Master Control → Ben 10,000.
+- **Codex screen redesign:**
+  - Your rank and an XP bar at the top.
+  - A mission card where the reward alien's silhouette fills in as a hologram as you progress, with a bar per objective and the reward.
+  - A chapter map of alien icons, with a progress ring around the alien you're working towards.
+- **Mission complete** splash with the XP earned, your rank and the new alien.
+
+### Changed
+- The DNA Codex tile shows your rank and the active mission's progress.
+- Mission progress starts fresh with this version.
+
+
 ## v0.4.3 (2026-10-23)
 
 ### Fixed

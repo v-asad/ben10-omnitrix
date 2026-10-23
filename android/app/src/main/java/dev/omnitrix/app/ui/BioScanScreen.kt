@@ -85,6 +85,8 @@ fun BioScanScreen(energy: Energy, onBack: () -> Unit) {
     var zone by remember { mutableIntStateOf(-1) }
 
     if (permitted) DisposableEffect(Unit) {
+        var firstReading = 0L                  // a scan counts for DNA missions after 15 s of readings
+        var counted = false
         val sensors = context.getSystemService(SensorManager::class.java)
         val sensor = sensors?.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         val listener = object : SensorEventListener {
@@ -92,6 +94,9 @@ fun BioScanScreen(energy: Energy, onBack: () -> Unit) {
                 val v = event.values[0].toInt()
                 if (v <= 0 || event.accuracy == SensorManager.SENSOR_STATUS_NO_CONTACT) return
                 bpm = v
+                val now = System.currentTimeMillis()
+                if (firstReading == 0L) firstReading = now
+                if (!counted && now - firstReading >= 15_000) { counted = true; dev.omnitrix.app.DnaCodex(context).onBioscan() }
                 val z = ZONES.indexOfFirst { v / maxHr <= it.upTo }
                 if (z != zone) { if (zone >= 0) Haptics.tick(view); zone = z }
             }

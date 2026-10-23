@@ -19,6 +19,7 @@ object Transformer {
         schedule(context, now + durationMillis, TimeoutReceiver.ACTION_TIMEOUT)
         refreshFace(context)
         Diagnostics.log(context, "transform", Aliens.all[alien].slug)
+        DnaCodex(context).onTransform(alien)
     }
 
     /** Switching back by holding the core: back to human, then the red timeout face. */
@@ -46,7 +47,7 @@ object Transformer {
         OmnitrixState(context).set(null)
         val timeout = startTimeout(context)
         refreshFace(context)
-        DnaCodex(context).addBonus()          // a full transformation earns DNA
+        DnaCodex(context).onFullTime()        // held alien form to the end: mission progress
         Haptics.timeout(context)
         Sounds.play(context, Sounds.Cue.TIMEOUT)
         Diagnostics.log(context, "timeout", "timeout_s=${timeout / 1000}")

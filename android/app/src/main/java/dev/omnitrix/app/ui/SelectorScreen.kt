@@ -49,6 +49,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import dev.omnitrix.app.Aliens
+import dev.omnitrix.app.Missions
 import dev.omnitrix.app.Energy
 import dev.omnitrix.app.Haptics
 import dev.omnitrix.app.Sounds
@@ -100,9 +101,13 @@ fun SelectorScreen(
     val view = LocalView.current
     val scope = rememberCoroutineScope()
     val count = Aliens.size
+    // The ring follows the DNA Missions order, so unlocked aliens sit together; positions are ring slots.
+    val order = remember { Missions.build(); Missions.unlockOrder }
+    val slotOf = remember { IntArray(count).also { inv -> order.forEachIndexed { slot, alien -> inv[alien] = slot } } }
+    fun alienAt(pos: Float) = order[nearestAlien(pos)]
 
-    val position = remember { Animatable(initialAlien.toFloat()) }   // fractional index at 12 o'clock
-    val target = remember { floatArrayOf(initialAlien.toFloat()) }      // plain holder: no recomposition
+    val position = remember { Animatable(slotOf[initialAlien].toFloat()) }   // fractional slot at 12 o'clock
+    val target = remember { floatArrayOf(slotOf[initialAlien].toFloat()) }      // plain holder: no recomposition
     var selected by remember { mutableIntStateOf(initialAlien) }
     val materialize = remember { Animatable(0f) }
     val shake = remember { Animatable(0f) }
@@ -114,7 +119,8 @@ fun SelectorScreen(
 
     LaunchedEffect(Unit) { materialize.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 260f)) }
     LaunchedEffect(selected) {
-        art.prefetch(selected)
+        val slot = slotOf[selected]
+        for (d in -2..2) art.prefetch(order[Math.floorMod(slot + d, count)], radius = 0)
         // Once the carousel settles, prepare this alien's transformation in the background.
         delay(220)
         art.requestFull(selected)
@@ -136,7 +142,7 @@ fun SelectorScreen(
     fun step(direction: Int) {
         if (transforming) return
         target[0] = target[0].roundToInt() + direction.toFloat()
-        settle(nearestAlien(target[0]))
+        settle(alienAt(target[0]))
         scope.launch { position.animateTo(target[0], spring(dampingRatio = 0.8f, stiffness = 380f)) }
     }
 
@@ -195,7 +201,7 @@ fun SelectorScreen(
                             target[0] -= wrap(angle - lastAngle) / SPACING_DEG
                             lastAngle = angle
                             scope.launch { position.snapTo(target[0]) }
-                            settle(nearestAlien(target[0]))
+                            settle(alienAt(target[0]))
                             change.consume()
                         } else {
                             dy = change.position.y - down.position.y
@@ -227,7 +233,7 @@ fun SelectorScreen(
             val pos = position.value
             val t = scan.value
             withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                drawBezel(kit, art, pos, count, isUnlocked)
+                drawBezel(kit, art, pos, order, isUnlocked)
                 drawCore(kit, spin.value)
                 drawHologram(kit, art, selected, materialize.value, t, lockedFor(selected))
             }
@@ -261,7 +267,8 @@ private class SelectorKit(val energy: Energy) {
     }
 }
 
-private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, count: Int, isUnlocked: (Int) -> Boolean) {
+private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, order: List<Int>, isUnlocked: (Int) -> Boolean) {
+    val count = order.size
     drawCircle(kit.ringBrush, radius = 226f, center = CENTER, style = Stroke(26f), alpha = 0.5f)
     // the chamber at 12 o'clock glows
     drawArc(kit.main, -90f - 13f, 26f, useCenter = false, topLeft = Offset(14f, 14f), size = Size(452f, 452f),
@@ -271,12 +278,13 @@ private fun DrawScope.drawBezel(kit: SelectorKit, art: AlienArt, pos: Float, cou
         val a = ringDistance(i, pos, count) * SPACING_DEG
         if (abs(a) > 172f) continue                         // rolling window: only what fits on the bezel
         val sel = i == top
+        val alien = order[i]
         val p = polar(206f, a)
-        val alpha = (if (sel) 1f else max(0.18f, 1f - abs(a) / 180f)) * (if (isUnlocked(i)) 1f else 0.35f)
+        val alpha = (if (sel) 1f else max(0.18f, 1f - abs(a) / 180f)) * (if (isUnlocked(alien)) 1f else 0.35f)
         drawCircle(Color.Black, radius = if (sel) 25f else 17f, center = p)
         drawCircle(if (sel) kit.main else Color(0xFF2A3A28), radius = if (sel) 25f else 17f, center = p,
             style = Stroke(if (sel) 3f else 2f), alpha = alpha)
-        art.icon(i)?.let { icon ->
+        art.icon(alien)?.let { icon ->
             val (offset, size) = squareDst(p, if (sel) 38f else 26f)
             drawImage(icon, srcSize = icon.srcSize(), dstOffset = offset, dstSize = size,
                 alpha = alpha, colorFilter = if (sel) kit.mainFilter else kit.dimFilter)

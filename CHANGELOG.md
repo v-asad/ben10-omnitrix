@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.3 (2026-10-23)
+
+### Changed
+- Removed the white translucent glass highlight from the top of the hourglass. It sat behind the time and read as a smudge.
+
+
 ## v0.3.2 (2026-10-23)
 
 ### Fixed

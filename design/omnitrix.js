@@ -126,7 +126,6 @@ function hourglass(t, id, o) {
         ${o.theme==='red' ? `<rect x="80" y="230" width="320" height="20" fill="#fff" opacity=".12" ${anim('scan',2.6)}/>` : ''}
         <polygon points="226,240 104,30 20,30 20,450 104,450" fill="${t.wedge}"/>
         <polygon points="254,240 376,30 460,30 460,450 376,450" fill="${t.wedge}"/>
-        <ellipse cx="240" cy="${240 - CORE_R * .62}" rx="${CORE_R * .47}" ry="${CORE_R * .15}" fill="#fff" opacity=".28"/>
       </g>
       <circle cx="240" cy="240" r="${CORE_R}" fill="none" stroke="#000" stroke-width="5"/>
       <circle cx="240" cy="240" r="${CORE_R - 4}" fill="none" stroke="#fff" stroke-width="1" opacity=".18"/>

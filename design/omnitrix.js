@@ -353,21 +353,21 @@ function missionsSVG(o) {
 // measured by tools/build_watchface.py. Thin neon lines, dimly glowing bulbs,
 // everything else dark. Static (no text) so the watch face can reuse it as a layer.
 const AOD = {
-  green: { line:'#46C424', dim:'#0E3A08', faint:'#163A14', label:'#2A6A1A' },
-  alien: { line:'#D6F5CC', dim:'#26332A', faint:'#202A22', label:'#7FA878' },
+  green: { line:'#6CFF3A', dim:'#0E3A08', faint:'#2A6A1A', label:'#4FB82A' },
+  alien: { line:'#F2FFEE', dim:'#26332A', faint:'#3A4A3C', label:'#B8DDB0' },
 };
 function ambientArt(id, mode='green') {
   const c = AOD[mode];
   // hour ticks only: the always-on screen stays under its lit-pixel budget
   const ticks = Array.from({length:60}, (_,i) => i % 5 ? '' : (() => {
     const hour = true, [x0,y0] = polar(222, i*6), [x1,y1] = polar(232, i*6);
-    return `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${hour ? c.label : c.faint}" stroke-width="${hour?2.5:1.5}" stroke-linecap="round"/>`;
+    return `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${hour ? c.label : c.faint}" stroke-width="${hour?3:1.5}" stroke-linecap="round"/>`;
   })()).join('');
   const bulb = (y0) => `<linearGradient id="bulb${id}${y0}" x1="0" y1="${y0 < 240 ? 0 : 1}" x2="0" y2="${y0 < 240 ? 1 : 0}">
-      <stop offset="0" stop-color="${c.dim}"/><stop offset=".3" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
+      <stop offset="0" stop-color="${c.dim}"/><stop offset=".15" stop-color="${c.dim}" stop-opacity="0"/></linearGradient>`;
   return `<defs>
       ${bulb(90)}${bulb(390)}
-      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="aglow${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <clipPath id="aclip${id}"><circle cx="240" cy="240" r="${CORE_R}"/></clipPath>
       <path id="aarc${id}" d="${arc(172, -62, 62)}"/>
     </defs>
@@ -377,7 +377,7 @@ function ambientArt(id, mode='green') {
       <polygon points="226,240 104,30 376,30 254,240" fill="url(#bulb${id}90)"/>
       <polygon points="226,240 104,450 376,450 254,240" fill="url(#bulb${id}390)"/>
     </g>
-    <g filter="url(#aglow${id})" fill="none" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round">
+    <g filter="url(#aglow${id})" fill="none" stroke="${c.line}" stroke-width="3" stroke-linejoin="round">
       <circle cx="240" cy="240" r="${CORE_R}"/>
       <g clip-path="url(#aclip${id})">
         <polyline points="98,20 226,240 98,460"/>

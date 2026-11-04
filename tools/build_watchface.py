@@ -46,8 +46,8 @@ COLORS = {
 }
 # Always-on palette, mirroring AOD in design/omnitrix.js
 AOD_COLORS = {
-    "green": {"line": "#46C424", "dim": "#0E3A08", "label": "#2A6A1A"},
-    "alien": {"line": "#D6F5CC", "dim": "#26332A", "label": "#7FA878"},
+    "green": {"line": "#6CFF3A", "dim": "#0E3A08", "label": "#4FB82A"},
+    "alien": {"line": "#F2FFEE", "dim": "#26332A", "label": "#B8DDB0"},
 }
 
 
@@ -238,7 +238,7 @@ def alien_slot(boxes):
     ambient = "\n".join([
         '<PartDraw x="0" y="0" width="480" height="480"><Ellipse x="0" y="0" width="480" height="480"><Fill color="#FF000000"/></Ellipse></PartDraw>',
         image("ambient_alien", boxes),
-        time_text(aod["dim"], outline=aod["line"]), name(aod["label"]), emblems(aod["line"]),
+        time_text(aod["line"]), name(aod["label"]), emblems(aod["line"]),
         countdown(aod["label"], family="orbitron_bold"),
     ])
     return f'''    <ComplicationSlot slotId="0" name="omnitrix_core" x="0" y="0" width="480" height="480"
@@ -281,7 +281,7 @@ def watchface_xml(boxes):
     aod = AOD_COLORS["green"]
     ambient = "\n".join([
         image("ambient", boxes),
-        time_text(aod["dim"], outline=aod["line"]),
+        time_text(aod["line"]),
         date_text(aod["label"]),
     ])
     return f'''<?xml version="1.0" encoding="utf-8"?>

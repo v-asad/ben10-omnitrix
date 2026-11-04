@@ -1,5 +1,9 @@
 package dev.omnitrix.app.ui
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -16,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
 /** Fraction of the screen width, from the left edge, where a swipe counts as "back". */
@@ -30,12 +35,17 @@ private const val COMMIT_FRACTION = 0.3f
  * the gesture but only from the edge. A touch that starts in the edge strip is claimed before the
  * screen sees it, the content follows the finger (the watch face shows through the translucent
  * window) and releasing past [COMMIT_FRACTION] runs [onBack].
+ *
+ * When that back closes the app, the swipe has already animated it away, so the system's close
+ * animation is skipped and the content stays off screen (otherwise it would snap back and
+ * animate out a second time).
  */
 @Composable
 fun EdgeSwipeBack(onBack: () -> Unit, content: @Composable () -> Unit) {
     val back by rememberUpdatedState(onBack)
     val offset = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
+    val activity = LocalContext.current.findActivity()
 
     Box(
         Modifier
@@ -58,8 +68,12 @@ fun EdgeSwipeBack(onBack: () -> Unit, content: @Composable () -> Unit) {
                     scope.launch {
                         if (dx > width * COMMIT_FRACTION) {
                             offset.animateTo(width, tween(140))
+                            activity?.skipCloseAnimation(true)
                             back()
-                            offset.snapTo(0f)
+                            if (activity?.isFinishing != true) {
+                                activity?.skipCloseAnimation(false)      // stayed in the app
+                                offset.snapTo(0f)
+                            }
                         } else {
                             offset.animateTo(0f, spring(dampingRatio = 0.8f, stiffness = 500f))
                         }
@@ -71,4 +85,20 @@ fun EdgeSwipeBack(onBack: () -> Unit, content: @Composable () -> Unit) {
                 alpha = 1f - (offset.value / size.width.coerceAtLeast(1f)) * 0.7f
             },
     ) { content() }
+}
+
+/** The swipe already animated the app away: closing shouldn't animate it a second time. */
+private fun Activity.skipCloseAnimation(skip: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        if (skip) overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        else clearOverrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE)
+    } else if (skip && isFinishing) {
+        @Suppress("DEPRECATION") overridePendingTransition(0, 0)
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

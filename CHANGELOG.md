@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.4 (2026-11-04)
+
+### Fixed
+- **Going back animates once:** swiping in from the left edge to leave the app used to slide the screen away, then show it again while the system played its own close animation. Now the swipe is the only animation.
+
+### Changed
+- **Brighter always-on screen:** the time is now solid bright green (it was a dark fill with a thin outline), the date is brighter, and the hourglass lines and hour ticks are bolder. It still lights only about 9% of the screen, well under the 15% always-on budget.
+
+
 ## v0.5.3 (2026-10-23)
 
 Documentation only. The apps are unchanged and stay at v0.5.2.
